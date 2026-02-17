@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light Mode - Warm Bread Crust Theme */
+  --background: #fff7ed;
+  --foreground: #7c2d12;
+  --card-bg: #ffffff;
+  --primary: #ea580c;
+  --primary-hover: #c2410c;
+  --secondary: #fef3c7;
+  --secondary-hover: #fde68a;
+  --accent: #ca8a04;
+  --text-muted: #57534e;
+  --border: #e7e5e4;
+}
+
+.dark {
+  /* Dark Mode - Warm Bread Crust Theme */
+  --background: #0f172a;
+  --foreground: #fef3c7;
+  --card-bg: #1e293b;
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+  --secondary: #fbbf2415;
+  --secondary-hover: #fbbf2425;
+  --accent: #fbbf24;
+  --text-muted: #d4a574;
+  --border: #334155;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* System dark mode - Warm Bread Crust Theme */
+    --background: #0f172a;
+    --foreground: #fef3c7;
+    --card-bg: #1e293b;
+    --primary: #f97316;
+    --primary-hover: #ea580c;
+    --secondary: #fbbf2415;
+    --secondary-hover: #fbbf2425;
+    --accent: #fbbf24;
+    --text-muted: #d4a574;
+    --border: #334155;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
