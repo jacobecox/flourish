@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// User
+// id will match the FusionAuth user ID (external auth)
+// ─────────────────────────────────────────────
+model User {
+  id             String         @id              // FusionAuth user ID
+  email          String         @unique
+  name           String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  recipes        Recipe[]
+  journalEntries JournalEntry[]
+}
+
+// ─────────────────────────────────────────────
+// Recipe
+// ─────────────────────────────────────────────
+model Recipe {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  sourceUrl    String?                            // imported from URL
+  ingredients  Json                               // array of ingredient strings
+  instructions Json                               // array of step strings
+  servings     Int?
+  prepTime     Int?                               // minutes
+  cookTime     Int?                               // minutes
+  isPublic     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tags         RecipeTag[]
+  journalEntries JournalEntry[]
+}
+
+// ─────────────────────────────────────────────
+// Tag  (e.g. "sourdough", "whole wheat", "beginner")
+// ─────────────────────────────────────────────
+model Tag {
+  id      String      @id @default(cuid())
+  name    String      @unique
+
+  recipes RecipeTag[]
+}
+
+// Junction table for Recipe <-> Tag many-to-many
+model RecipeTag {
+  recipeId String
+  tagId    String
+
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([recipeId, tagId])
+}
+
+// ─────────────────────────────────────────────
+// Journal Entry
+// ─────────────────────────────────────────────
+model JournalEntry {
+  id        String         @id @default(cuid())
+  date      DateTime       @default(now())
+  notes     String?
+  rating    Int?                                  // 1–5
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  recipeId  String?
+  recipe    Recipe?        @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  photos    JournalPhoto[]
+}
+
+// ─────────────────────────────────────────────
+// Journal Photo
+// ─────────────────────────────────────────────
+model JournalPhoto {
+  id             String       @id @default(cuid())
+  url            String                           // storage URL
+  caption        String?
+  createdAt      DateTime     @default(now())
+
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+}
