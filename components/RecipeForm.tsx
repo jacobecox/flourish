@@ -61,6 +61,21 @@ export default function RecipeForm({
     e.preventDefault();
     setPending(true);
     const formData = new FormData(e.currentTarget);
+
+    // Combine hr + min fields into total minutes
+    const prepHr = Number(formData.get("prepTimeHr") ?? 0);
+    const prepMin = Number(formData.get("prepTimeMin") ?? 0);
+    const cookHr = Number(formData.get("cookTimeHr") ?? 0);
+    const cookMin = Number(formData.get("cookTimeMin") ?? 0);
+    formData.delete("prepTimeHr");
+    formData.delete("prepTimeMin");
+    formData.delete("cookTimeHr");
+    formData.delete("cookTimeMin");
+    const totalPrep = prepHr * 60 + prepMin;
+    const totalCook = cookHr * 60 + cookMin;
+    if (totalPrep > 0) formData.set("prepTime", String(totalPrep));
+    if (totalCook > 0) formData.set("cookTime", String(totalCook));
+
     // Inject dynamic ingredient/instruction arrays
     formData.delete("ingredients[]");
     formData.delete("instructions[]");
@@ -125,30 +140,52 @@ export default function RecipeForm({
       {/* Time & Servings */}
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label htmlFor="prepTime" className={labelClass}>
-            Prep time (min)
-          </label>
-          <input
-            id="prepTime"
-            name="prepTime"
-            type="number"
-            min={0}
-            defaultValue={defaultValues.prepTime ?? ""}
-            className={inputClass}
-          />
+          <label className={labelClass}>Prep time</label>
+          <div className="flex gap-1.5 items-center">
+            <input
+              name="prepTimeHr"
+              type="number"
+              min={0}
+              defaultValue={defaultValues.prepTime ? Math.floor(defaultValues.prepTime / 60) || "" : ""}
+              placeholder="0"
+              className={`${inputClass} w-full`}
+            />
+            <span className="text-muted text-sm shrink-0">hr</span>
+            <input
+              name="prepTimeMin"
+              type="number"
+              min={0}
+              max={59}
+              defaultValue={defaultValues.prepTime ? defaultValues.prepTime % 60 || "" : ""}
+              placeholder="0"
+              className={`${inputClass} w-full`}
+            />
+            <span className="text-muted text-sm shrink-0">min</span>
+          </div>
         </div>
         <div>
-          <label htmlFor="cookTime" className={labelClass}>
-            Bake time (min)
-          </label>
-          <input
-            id="cookTime"
-            name="cookTime"
-            type="number"
-            min={0}
-            defaultValue={defaultValues.cookTime ?? ""}
-            className={inputClass}
-          />
+          <label className={labelClass}>Bake time</label>
+          <div className="flex gap-1.5 items-center">
+            <input
+              name="cookTimeHr"
+              type="number"
+              min={0}
+              defaultValue={defaultValues.cookTime ? Math.floor(defaultValues.cookTime / 60) || "" : ""}
+              placeholder="0"
+              className={`${inputClass} w-full`}
+            />
+            <span className="text-muted text-sm shrink-0">hr</span>
+            <input
+              name="cookTimeMin"
+              type="number"
+              min={0}
+              max={59}
+              defaultValue={defaultValues.cookTime ? defaultValues.cookTime % 60 || "" : ""}
+              placeholder="0"
+              className={`${inputClass} w-full`}
+            />
+            <span className="text-muted text-sm shrink-0">min</span>
+          </div>
         </div>
         <div>
           <label htmlFor="servings" className={labelClass}>

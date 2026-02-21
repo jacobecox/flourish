@@ -39,12 +39,20 @@ export default async function RecipesPage({
           <h1 className="text-3xl font-bold text-foreground mb-2">Recipe Manager</h1>
           <p className="text-muted">Import and manage your sourdough recipes</p>
         </div>
-        <Link
-          href="/recipes/new"
-          className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-semibold transition-colors shrink-0"
-        >
-          Add Recipe
-        </Link>
+        <div className="flex gap-3 shrink-0">
+          <Link
+            href="/recipes/import"
+            className="bg-secondary hover:bg-secondary-hover text-foreground px-4 py-2 rounded-lg font-semibold border border-[var(--border)] transition-colors"
+          >
+            Import from URL
+          </Link>
+          <Link
+            href="/recipes/new"
+            className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          >
+            Add Recipe
+          </Link>
+        </div>
       </div>
 
       {allRecipes.length > 0 && (
@@ -62,12 +70,20 @@ export default async function RecipesPage({
             <p className="text-muted mb-6">
               Get started by adding your first sourdough recipe
             </p>
-            <Link
-              href="/recipes/new"
-              className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-            >
-              Add Your First Recipe
-            </Link>
+            <div className="flex gap-3 justify-center">
+              <Link
+                href="/recipes/import"
+                className="bg-secondary hover:bg-secondary-hover text-foreground px-5 py-2 rounded-lg font-semibold border border-[var(--border)] transition-colors"
+              >
+                Import from URL
+              </Link>
+              <Link
+                href="/recipes/new"
+                className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-semibold transition-colors"
+              >
+                Add Manually
+              </Link>
+            </div>
           </div>
         </div>
       ) : recipes.length === 0 ? (

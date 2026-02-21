@@ -5,6 +5,7 @@ import { faChevronLeft, faClock, faUtensils, faPen } from "@fortawesome/free-sol
 import { prisma } from "@/lib/prisma";
 import { DEV_USER_ID } from "@/lib/dev-user";
 import DeleteRecipeButton from "@/components/DeleteRecipeButton";
+import { formatTime } from "@/lib/utils";
 
 export default async function RecipeDetailPage({
   params,
@@ -61,9 +62,9 @@ export default async function RecipeDetailPage({
         {totalTime > 0 && (
           <div className="flex items-center gap-1.5 text-sm text-muted">
             <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-accent" />
-            {recipe.prepTime ? `${recipe.prepTime} min prep` : ""}
+            {recipe.prepTime ? `${formatTime(recipe.prepTime)} prep` : ""}
             {recipe.prepTime && recipe.cookTime ? " · " : ""}
-            {recipe.cookTime ? `${recipe.cookTime} min bake` : ""}
+            {recipe.cookTime ? `${formatTime(recipe.cookTime)} bake` : ""}
           </div>
         )}
         {recipe.servings && (

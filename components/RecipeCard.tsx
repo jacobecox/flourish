@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatTime } from "@/lib/utils";
 
 type RecipeCardProps = {
   recipe: {
@@ -25,9 +26,9 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         )}
         {totalTime > 0 && (
           <p className="text-xs text-muted mb-3">
-            {totalTime} min total
-            {recipe.prepTime ? ` · ${recipe.prepTime} min prep` : ""}
-            {recipe.cookTime ? ` · ${recipe.cookTime} min bake` : ""}
+            {formatTime(totalTime)} total
+            {recipe.prepTime ? ` · ${formatTime(recipe.prepTime)} prep` : ""}
+            {recipe.cookTime ? ` · ${formatTime(recipe.cookTime)} bake` : ""}
           </p>
         )}
         {recipe.tags.length > 0 && (
