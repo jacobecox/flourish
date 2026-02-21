@@ -34,12 +34,17 @@ export default function ThemeToggle() {
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
+    root.classList.remove("dark", "light");
 
-    if (newTheme === "system") {
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      root.classList.toggle("dark", systemPrefersDark);
+    if (newTheme === "dark") {
+      root.classList.add("dark");
+    } else if (newTheme === "light") {
+      root.classList.add("light");
     } else {
-      root.classList.toggle("dark", newTheme === "dark");
+      // system: let the media query in CSS handle it, but apply dark class
+      // so Tailwind dark: utilities also work
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (systemPrefersDark) root.classList.add("dark");
     }
   };
 
