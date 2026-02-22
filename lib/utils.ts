@@ -63,6 +63,31 @@ export function scaleIngredient(ingredient: string, scale: number): string {
   return formatAmount(value * scale) + ingredient.slice(match[1].length);
 }
 
+// Matches the first gram quantity in an ingredient string, e.g. "500g", "375 grams", "10gr"
+const GRAM_AMOUNT = /(\d+(?:\.\d+)?)\s*(?:grams?|gr?)\b/i;
+
+export function parseGrams(ingredient: string): number | null {
+  const match = ingredient.match(GRAM_AMOUNT);
+  if (!match) return null;
+  const n = parseFloat(match[1]);
+  return isNaN(n) ? null : n;
+}
+
+// Returns baker's percentage for each ingredient relative to total flour weight.
+// Ingredients without a parseable gram amount return null.
+// Returns all-null if no flour ingredient is found or no flour has a gram amount.
+export function calcBakersPercentages(ingredients: string[]): (number | null)[] {
+  const grams = ingredients.map(parseGrams);
+  const totalFlour = ingredients.reduce((sum, ing, i) => {
+    if (/\bflour\b/i.test(ing) && grams[i] !== null) return sum + grams[i]!;
+    return sum;
+  }, 0);
+  if (totalFlour === 0) return ingredients.map(() => null);
+  return grams.map((g) =>
+    g !== null ? Math.round((g / totalFlour) * 1000) / 10 : null
+  );
+}
+
 export function formatTime(minutes: number): string {
   if (minutes <= 0) return "";
   if (minutes < 60) return `${minutes} min`;
