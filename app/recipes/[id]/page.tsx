@@ -13,6 +13,7 @@ import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { prisma } from "@/lib/prisma";
 import { DEV_USER_ID } from "@/lib/dev-user";
 import DeleteRecipeButton from "@/components/DeleteRecipeButton";
+import RecipeScaler from "@/components/RecipeScaler";
 import { formatTime, formatDate } from "@/lib/utils";
 
 export default async function RecipeDetailPage({
@@ -119,17 +120,7 @@ export default async function RecipeDetailPage({
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Ingredients */}
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-4">Ingredients</h2>
-          <ul className="space-y-2">
-            {ingredients.map((item, i) => (
-              <li key={i} className="flex gap-3 text-sm">
-                <span className="text-accent font-bold mt-0.5">·</span>
-                <span className="text-foreground">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <RecipeScaler ingredients={ingredients} />
 
         {/* Instructions */}
         <div>
