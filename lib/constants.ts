@@ -1,0 +1,1 @@
+export const JOURNAL_JOURNAL_PAGE_SIZE = 12;

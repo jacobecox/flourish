@@ -1,31 +1,77 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { DEV_USER_ID } from "@/lib/dev-user";
-import JournalEntryCard from "@/components/JournalEntryCard";
+import JournalEntryList from "@/components/JournalEntryList";
+import JournalSearch from "@/components/JournalSearch";
 
-export default async function JournalPage() {
-  const entries = await prisma.journalEntry.findMany({
-    where: { userId: DEV_USER_ID },
-    include: { recipe: true },
-    orderBy: { date: "desc" },
-  });
+const PAGE_SIZE = 12;
+
+export default async function JournalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; rating?: string; recipe?: string }>;
+}) {
+  const { q, rating, recipe } = await searchParams;
+  const query = q?.trim() || undefined;
+  const minRating = rating ? parseInt(rating) : undefined;
+
+  const filters = { q: query, rating, recipe };
+
+  const where = {
+    userId: DEV_USER_ID,
+    ...(query ? { notes: { contains: query, mode: "insensitive" as const } } : {}),
+    ...(minRating ? { rating: { gte: minRating } } : {}),
+    ...(recipe ? { recipeId: recipe } : {}),
+  };
+
+  const [rawEntries, totalCount, recipes] = await Promise.all([
+    prisma.journalEntry.findMany({
+      where,
+      include: { recipe: { select: { id: true, title: true } } },
+      orderBy: { date: "desc" },
+      take: PAGE_SIZE + 1,
+    }),
+    prisma.journalEntry.count({ where: { userId: DEV_USER_ID } }),
+    prisma.recipe.findMany({
+      where: { userId: DEV_USER_ID },
+      select: { id: true, title: true },
+      orderBy: { title: "asc" },
+    }),
+  ]);
+
+  const hasMore = rawEntries.length > PAGE_SIZE;
+  const entries = (hasMore ? rawEntries.slice(0, PAGE_SIZE) : rawEntries).map((e) => ({
+    ...e,
+    date: e.date.toISOString(),
+  }));
+  const initialCursor = entries[entries.length - 1]?.id ?? null;
+  const isFiltering = query || minRating !== undefined || recipe;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Baker&apos;s Journal</h1>
           <p className="text-muted">Document your baking journey</p>
         </div>
         <Link
           href="/journal/new"
-          className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-semibold transition-colors shrink-0"
         >
           New Entry
         </Link>
       </div>
 
-      {entries.length === 0 ? (
+      {totalCount > 0 && (
+        <div className="mb-6">
+          <Suspense>
+            <JournalSearch recipes={recipes} />
+          </Suspense>
+        </div>
+      )}
+
+      {entries.length === 0 && !isFiltering ? (
         <div className="bg-card border-2 border-dashed border-[var(--border)] rounded-lg p-12 text-center">
           <div className="max-w-md mx-auto">
             <h3 className="text-xl font-semibold text-foreground mb-2">No journal entries yet</h3>
@@ -40,12 +86,18 @@ export default async function JournalPage() {
             </Link>
           </div>
         </div>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {entries.map((entry) => (
-            <JournalEntryCard key={entry.id} entry={entry} />
-          ))}
+      ) : entries.length === 0 ? (
+        <div className="bg-card border border-[var(--border)] rounded-lg p-12 text-center">
+          <p className="text-muted">No entries match your filters.</p>
         </div>
+      ) : (
+        <JournalEntryList
+          key={`${query}-${rating}-${recipe}`}
+          initialEntries={entries}
+          initialHasMore={hasMore}
+          initialCursor={initialCursor}
+          filters={filters}
+        />
       )}
     </div>
   );

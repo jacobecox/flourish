@@ -47,11 +47,16 @@ export default async function EditJournalEntryPage({
         action={boundAction}
         recipes={recipes}
         defaultValues={{
-          date: entry.date,
+          date: entry.date.toISOString(),
           notes: entry.notes,
           rating: entry.rating,
           recipeId: entry.recipeId,
           photos: entry.photos.map((p) => ({ id: p.id, url: p.url })),
+          hydration: entry.hydration,
+          flourType: entry.flourType,
+          bulkTime: entry.bulkTime,
+          proofTime: entry.proofTime,
+          bakeTemp: entry.bakeTemp,
         }}
         submitLabel="Save Changes"
       />

@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/utils";
 type JournalEntryCardProps = {
   entry: {
     id: string;
-    date: Date;
+    date: Date | string;
     notes: string | null;
     rating: number | null;
     recipe: { id: string; title: string } | null;

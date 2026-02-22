@@ -6,7 +6,13 @@ import { DEV_USER_ID } from "@/lib/dev-user";
 import { createJournalEntry } from "@/lib/actions/journal";
 import JournalEntryForm from "@/components/JournalEntryForm";
 
-export default async function NewJournalEntryPage() {
+export default async function NewJournalEntryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ recipeId?: string }>;
+}) {
+  const { recipeId } = await searchParams;
+
   const recipes = await prisma.recipe.findMany({
     where: { userId: DEV_USER_ID },
     select: { id: true, title: true },
@@ -29,6 +35,7 @@ export default async function NewJournalEntryPage() {
       <JournalEntryForm
         action={createJournalEntry}
         recipes={recipes}
+        defaultValues={{ recipeId: recipeId ?? null }}
         submitLabel="Save Entry"
       />
     </div>

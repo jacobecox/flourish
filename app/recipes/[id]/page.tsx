@@ -1,11 +1,19 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faClock, faUtensils, faPen } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronLeft,
+  faClock,
+  faUtensils,
+  faPen,
+  faStar as faStarSolid,
+  faBookOpen,
+} from "@fortawesome/free-solid-svg-icons";
+import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { prisma } from "@/lib/prisma";
 import { DEV_USER_ID } from "@/lib/dev-user";
 import DeleteRecipeButton from "@/components/DeleteRecipeButton";
-import { formatTime } from "@/lib/utils";
+import { formatTime, formatDate } from "@/lib/utils";
 
 export default async function RecipeDetailPage({
   params,
@@ -20,12 +28,16 @@ export default async function RecipeDetailPage({
   const backHref = from?.startsWith("/") ? from : "/recipes";
   const backLabel = from?.startsWith("/journal") ? "Back to journal entry" : "Back to recipes";
 
-  const recipe = await prisma.recipe.findFirst({
-    where: { id, userId: DEV_USER_ID },
-    include: {
-      tags: { include: { tag: true } },
-    },
-  });
+  const [recipe, journalEntries] = await Promise.all([
+    prisma.recipe.findFirst({
+      where: { id, userId: DEV_USER_ID },
+      include: { tags: { include: { tag: true } } },
+    }),
+    prisma.journalEntry.findMany({
+      where: { recipeId: id, userId: DEV_USER_ID },
+      orderBy: { date: "desc" },
+    }),
+  ]);
 
   if (!recipe) notFound();
 
@@ -133,6 +145,66 @@ export default async function RecipeDetailPage({
             ))}
           </ol>
         </div>
+      </div>
+
+      {/* Journal entries for this recipe */}
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            <FontAwesomeIcon icon={faBookOpen} className="w-4 h-4 text-accent" />
+            Bake History
+          </h2>
+          <Link
+            href={`/journal/new?recipeId=${recipe.id}`}
+            className="text-sm text-primary hover:text-primary-hover transition-colors"
+          >
+            + Log a bake
+          </Link>
+        </div>
+
+        {journalEntries.length === 0 ? (
+          <div className="bg-card border border-dashed border-[var(--border)] rounded-lg p-6 text-center">
+            <p className="text-muted text-sm">No bakes logged for this recipe yet.</p>
+            <Link
+              href={`/journal/new?recipeId=${recipe.id}`}
+              className="inline-block mt-3 text-sm text-primary hover:text-primary-hover transition-colors"
+            >
+              Log your first bake
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {journalEntries.map((entry) => (
+              <Link
+                key={entry.id}
+                href={`/journal/${entry.id}`}
+                className="group block bg-card border border-[var(--border)] rounded-lg p-4 hover:border-primary hover:shadow-md transition-all"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-muted mb-1">
+                      {formatDate(entry.date)}
+                    </p>
+                    {entry.notes && (
+                      <p className="text-sm text-foreground line-clamp-2">{entry.notes}</p>
+                    )}
+                  </div>
+                  {entry.rating !== null && (
+                    <div className="flex gap-0.5 shrink-0">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <FontAwesomeIcon
+                          key={n}
+                          icon={n <= entry.rating! ? faStarSolid : faStarRegular}
+                          className={`w-3 h-3 ${n <= entry.rating! ? "text-amber-400" : "text-muted"}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

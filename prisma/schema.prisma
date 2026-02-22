@@ -76,6 +76,14 @@ model JournalEntry {
   date      DateTime       @default(now())
   notes     String?
   rating    Int?                                  // 1–5
+
+  // Bake metrics
+  hydration Float?                                // dough hydration %
+  flourType String?                               // e.g. "bread flour", "50% WW"
+  bulkTime  Int?                                  // bulk fermentation, minutes
+  proofTime Int?                                  // final proof, minutes
+  bakeTemp  Int?                                  // oven temp °F
+
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 

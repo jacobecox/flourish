@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,8 +9,9 @@ import {
 import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { prisma } from "@/lib/prisma";
 import { DEV_USER_ID } from "@/lib/dev-user";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatTime } from "@/lib/utils";
 import DeleteJournalEntryButton from "@/components/DeleteJournalEntryButton";
+import PhotoLightbox from "@/components/PhotoLightbox";
 
 export default async function JournalEntryPage({
   params,
@@ -76,27 +76,61 @@ export default async function JournalEntryPage({
         </div>
       )}
 
+      {/* Bake metrics */}
+      {(() => {
+        const hydration = entry.hydration !== null && !isNaN(entry.hydration) ? entry.hydration : null;
+        const flourType = entry.flourType || null;
+        const bulkTime = entry.bulkTime !== null && !isNaN(entry.bulkTime) ? entry.bulkTime : null;
+        const proofTime = entry.proofTime !== null && !isNaN(entry.proofTime) ? entry.proofTime : null;
+        const bakeTemp = entry.bakeTemp !== null && !isNaN(entry.bakeTemp) ? entry.bakeTemp : null;
+        const hasAny = hydration !== null || flourType !== null || bulkTime !== null || proofTime !== null || bakeTemp !== null;
+        return (
+          <div className="mb-6">
+            <p className="text-xs font-medium text-muted uppercase tracking-wide mb-2">Bake Metrics</p>
+            {hasAny ? (
+              <div className="bg-card border border-[var(--border)] rounded-lg px-4 py-3 flex flex-wrap gap-x-6 gap-y-2">
+                {hydration !== null && (
+                  <div>
+                    <p className="text-xs text-muted">Hydration</p>
+                    <p className="text-sm font-medium text-foreground">{hydration}%</p>
+                  </div>
+                )}
+                {flourType !== null && (
+                  <div>
+                    <p className="text-xs text-muted">Flour</p>
+                    <p className="text-sm font-medium text-foreground">{flourType}</p>
+                  </div>
+                )}
+                {bulkTime !== null && (
+                  <div>
+                    <p className="text-xs text-muted">Bulk Fermentation</p>
+                    <p className="text-sm font-medium text-foreground">{formatTime(bulkTime)}</p>
+                  </div>
+                )}
+                {proofTime !== null && (
+                  <div>
+                    <p className="text-xs text-muted">Final Proof</p>
+                    <p className="text-sm font-medium text-foreground">{formatTime(proofTime)}</p>
+                  </div>
+                )}
+                {bakeTemp !== null && (
+                  <div>
+                    <p className="text-xs text-muted">Bake Temp</p>
+                    <p className="text-sm font-medium text-foreground">{bakeTemp}°F</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-muted text-sm italic">No bake metrics recorded.</p>
+            )}
+          </div>
+        );
+      })()}
+
       {entry.photos.length > 0 && (
         <div className="mb-6">
           <p className="text-xs font-medium text-muted uppercase tracking-wide mb-2">Photos</p>
-          <div className="flex flex-wrap gap-3">
-            {entry.photos.map((photo) => (
-              <a
-                key={photo.id}
-                href={photo.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative w-28 h-28 shrink-0 block rounded-lg overflow-hidden border border-[var(--border)] hover:opacity-90 transition-opacity"
-              >
-                <Image
-                  src={photo.url}
-                  alt="Journal photo"
-                  fill
-                  className="object-cover"
-                />
-              </a>
-            ))}
-          </div>
+          <PhotoLightbox photos={entry.photos} />
         </div>
       )}
 

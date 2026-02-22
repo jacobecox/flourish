@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,6 +20,12 @@ type JournalEntryFormProps = {
     rating?: number | null;
     recipeId?: string | null;
     photos?: ExistingPhoto[];
+    // Bake metrics
+    hydration?: number | null;
+    flourType?: string | null;
+    bulkTime?: number | null;
+    proofTime?: number | null;
+    bakeTemp?: number | null;
   };
   submitLabel?: string;
 };
@@ -42,6 +48,7 @@ export default function JournalEntryForm({
     defaultValues?.photos ?? []
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isPending, startTransition] = useTransition();
 
   const defaultDate = defaultValues?.date
     ? toDateInputValue(defaultValues.date)
@@ -70,16 +77,21 @@ export default function JournalEntryForm({
     setExistingPhotos((prev) => prev.filter((p) => p.id !== photoId));
   }
 
-  // Inject pending files into the FormData before the action runs
-  async function handleSubmit(formData: FormData) {
+  // useTransition is required here so Next.js correctly handles the redirect
+  // inside the server action after file upload (form action={clientFn} breaks redirect)
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     pendingPhotos.forEach(({ file }) => formData.append("photos[]", file));
-    await action(formData);
+    startTransition(async () => {
+      await action(formData);
+    });
   }
 
   const hasPhotos = existingPhotos.length > 0 || pendingPhotos.length > 0;
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Hidden rating field */}
       <input type="hidden" name="rating" value={rating > 0 ? String(rating) : ""} />
 
@@ -235,13 +247,131 @@ export default function JournalEntryForm({
         </button>
       </div>
 
+      {/* Bake Metrics */}
+      <div>
+        <p className="block text-sm font-medium text-foreground mb-3">
+          Bake Metrics <span className="text-muted font-normal">(optional)</span>
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Hydration */}
+          <div>
+            <label htmlFor="hydration" className="block text-xs text-muted mb-1">
+              Hydration %
+            </label>
+            <input
+              id="hydration"
+              name="hydration"
+              type="number"
+              min="0"
+              max="200"
+              step="0.5"
+              defaultValue={defaultValues?.hydration ?? ""}
+              placeholder="e.g. 75"
+              className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+            />
+          </div>
+
+          {/* Flour type */}
+          <div>
+            <label htmlFor="flourType" className="block text-xs text-muted mb-1">
+              Flour Type
+            </label>
+            <input
+              id="flourType"
+              name="flourType"
+              type="text"
+              defaultValue={defaultValues?.flourType ?? ""}
+              placeholder="e.g. bread flour"
+              className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+            />
+          </div>
+
+          {/* Bulk fermentation */}
+          <div>
+            <p className="text-xs text-muted mb-1">Bulk Fermentation</p>
+            <div className="flex gap-2">
+              <input
+                name="bulkTimeHr"
+                type="number"
+                min="0"
+                defaultValue={
+                  defaultValues?.bulkTime != null
+                    ? Math.floor(defaultValues.bulkTime / 60)
+                    : ""
+                }
+                placeholder="hr"
+                className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+              />
+              <input
+                name="bulkTimeMin"
+                type="number"
+                min="0"
+                max="59"
+                defaultValue={
+                  defaultValues?.bulkTime != null ? defaultValues.bulkTime % 60 : ""
+                }
+                placeholder="min"
+                className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Final proof */}
+          <div>
+            <p className="text-xs text-muted mb-1">Final Proof</p>
+            <div className="flex gap-2">
+              <input
+                name="proofTimeHr"
+                type="number"
+                min="0"
+                defaultValue={
+                  defaultValues?.proofTime != null
+                    ? Math.floor(defaultValues.proofTime / 60)
+                    : ""
+                }
+                placeholder="hr"
+                className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+              />
+              <input
+                name="proofTimeMin"
+                type="number"
+                min="0"
+                max="59"
+                defaultValue={
+                  defaultValues?.proofTime != null ? defaultValues.proofTime % 60 : ""
+                }
+                placeholder="min"
+                className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Bake temp */}
+          <div>
+            <label htmlFor="bakeTemp" className="block text-xs text-muted mb-1">
+              Bake Temp (°F)
+            </label>
+            <input
+              id="bakeTemp"
+              name="bakeTemp"
+              type="number"
+              min="0"
+              defaultValue={defaultValues?.bakeTemp ?? ""}
+              placeholder="e.g. 450"
+              className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Actions */}
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-semibold text-sm transition-colors"
+          disabled={isPending}
+          className="bg-primary hover:bg-primary-hover disabled:opacity-60 text-white px-5 py-2 rounded-lg font-semibold text-sm transition-colors"
         >
-          {submitLabel}
+          {isPending ? "Saving…" : submitLabel}
         </button>
         <Link
           href="/journal"
