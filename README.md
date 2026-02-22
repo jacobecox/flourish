@@ -1,4 +1,4 @@
-# Flourish 🍞
+# Flourish
 
 A sourdough baking app for tracking recipes and your baking journey.
 
@@ -7,9 +7,9 @@ A sourdough baking app for tracking recipes and your baking journey.
 - **Frontend**: Next.js 15 + React 19 + TypeScript
 - **Styling**: Tailwind CSS
 - **Backend**: Next.js API routes
-- **Database**: PostgreSQL (planned)
-- **Auth**: Clerk or Supabase Auth (planned)
-- **Hosting**: Vercel (planned)
+- **Database**: PostgreSQL running on Control Plane (planned) with Prisma schema
+- **Auth**: FusionAuth running on Control Plane (planned)
+- **Hosting**: Control Plane (planned)
 
 ## Project Structure
 
@@ -60,9 +60,8 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Development Roadmap
 
-- [ ] Set up database schema
+- [ ] Add starter progress chart
+- [ ] Add Amazon links for tools 
 - [ ] Implement authentication
-- [ ] Build recipe manager
-- [ ] Build baker's journal
-- [ ] Add image upload functionality
+- [ ] Migrate image functionality to work with S3
 - [ ] Phase 2: RAG integration for recipe recommendations
