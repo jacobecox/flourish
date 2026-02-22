@@ -9,10 +9,16 @@ import { formatTime } from "@/lib/utils";
 
 export default async function RecipeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from } = await searchParams;
+
+  const backHref = from?.startsWith("/") ? from : "/recipes";
+  const backLabel = from?.startsWith("/journal") ? "Back to journal entry" : "Back to recipes";
 
   const recipe = await prisma.recipe.findFirst({
     where: { id, userId: DEV_USER_ID },
@@ -30,11 +36,11 @@ export default async function RecipeDetailPage({
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Link
-        href="/recipes"
+        href={backHref}
         className="inline-flex items-center gap-2 text-muted hover:text-foreground text-sm mb-6 transition-colors"
       >
         <FontAwesomeIcon icon={faChevronLeft} className="w-3 h-3" />
-        Back to recipes
+        {backLabel}
       </Link>
 
       {/* Header */}

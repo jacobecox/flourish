@@ -46,3 +46,6 @@ next-env.d.ts
 .claude
 
 /lib/generated/prisma
+
+# uploaded photos (placeholder local storage)
+/public/uploads
