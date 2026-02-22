@@ -52,7 +52,7 @@ export async function createRecipe(formData: FormData) {
 }
 
 export async function deleteRecipe(id: string) {
-  await prisma.recipe.delete({ where: { id, userId: DEV_USER_ID } });
+  await prisma.recipe.delete({ where: { id } });
   revalidatePath("/recipes");
   redirect("/recipes");
 }
@@ -83,7 +83,7 @@ export async function updateRecipe(id: string, formData: FormData) {
   );
 
   await prisma.recipe.update({
-    where: { id, userId: DEV_USER_ID },
+    where: { id },
     data: {
       title,
       description: description || null,

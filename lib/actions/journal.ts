@@ -112,12 +112,14 @@ export async function updateJournalEntry(id: string, formData: FormData) {
   const rating = ratingRaw ? parseInt(ratingRaw) : null;
 
   await prisma.journalEntry.update({
-    where: { id, userId: DEV_USER_ID },
+    where: { id },
     data: {
       date,
       notes: notes || null,
       rating: rating && rating >= 1 && rating <= 5 ? rating : null,
-      recipeId: recipeId || null,
+      recipe: recipeId
+        ? { connect: { id: recipeId } }
+        : { disconnect: true },
       ...parseMetrics(formData),
     },
   });
@@ -139,7 +141,7 @@ export async function updateJournalEntry(id: string, formData: FormData) {
 }
 
 export async function deleteJournalEntry(id: string) {
-  await prisma.journalEntry.delete({ where: { id, userId: DEV_USER_ID } });
+  await prisma.journalEntry.delete({ where: { id } });
   revalidatePath("/journal");
   redirect("/journal");
 }

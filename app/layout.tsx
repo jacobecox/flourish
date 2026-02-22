@@ -4,8 +4,29 @@ import Navigation from "@/components/Navigation";
 import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
-  title: "Flourish - Sourdough Baking App",
-  description: "Track your sourdough baking journey",
+  title: {
+    default: "Flourish",
+    template: "%s | Flourish",
+  },
+  description:
+    "Your personal sourdough baking companion. Track recipes, document bakes with photos and notes, and refine your craft over time.",
+  keywords: ["sourdough", "baking", "bread", "recipes", "baking journal", "sourdough starter", "baker"],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    title: "Flourish — Sourdough Baking Companion",
+    description: "Track recipes, document bakes, and refine your sourdough craft.",
+    siteName: "Flourish",
+  },
+  twitter: {
+    card: "summary",
+    title: "Flourish — Sourdough Baking Companion",
+    description: "Track recipes, document bakes, and refine your sourdough craft.",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
