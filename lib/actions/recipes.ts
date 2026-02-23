@@ -3,9 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { getSession } from "@/lib/session";
+
+async function requireSession() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  return session;
+}
 
 export async function createRecipe(formData: FormData) {
+  const session = await requireSession();
+
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
   const sourceUrl = formData.get("sourceUrl") as string | null;
@@ -31,7 +39,7 @@ export async function createRecipe(formData: FormData) {
       cookTime,
       ingredients,
       instructions,
-      userId: DEV_USER_ID,
+      userId: session.userId,
       tags: {
         create: await Promise.all(
           tagNames.map(async (name) => {
@@ -52,12 +60,15 @@ export async function createRecipe(formData: FormData) {
 }
 
 export async function deleteRecipe(id: string) {
+  await requireSession();
   await prisma.recipe.delete({ where: { id } });
   revalidatePath("/recipes");
   redirect("/recipes");
 }
 
 export async function updateRecipe(id: string, formData: FormData) {
+  await requireSession();
+
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
   const sourceUrl = formData.get("sourceUrl") as string | null;

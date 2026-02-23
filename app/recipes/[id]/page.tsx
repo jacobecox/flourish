@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,10 +12,25 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { getSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import DeleteRecipeButton from "@/components/DeleteRecipeButton";
 import RecipeScaler from "@/components/RecipeScaler";
 import { formatTime, formatDate } from "@/lib/utils";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const [session, { id }] = await Promise.all([getSession(), params]);
+  if (!session) return { title: "Recipe" };
+  const recipe = await prisma.recipe.findFirst({
+    where: { id, userId: session.userId },
+    select: { title: true },
+  });
+  return { title: recipe?.title ?? "Recipe" };
+}
 
 export default async function RecipeDetailPage({
   params,
@@ -23,19 +39,18 @@ export default async function RecipeDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ from?: string }>;
 }) {
-  const { id } = await params;
-  const { from } = await searchParams;
+  const [user, { id }, { from }] = await Promise.all([requireAuth(), params, searchParams]);
 
   const backHref = from?.startsWith("/") ? from : "/recipes";
   const backLabel = from?.startsWith("/journal") ? "Back to journal entry" : "Back to recipes";
 
   const [recipe, journalEntries] = await Promise.all([
     prisma.recipe.findFirst({
-      where: { id, userId: DEV_USER_ID },
+      where: { id, userId: user.id },
       include: { tags: { include: { tag: true } } },
     }),
     prisma.journalEntry.findMany({
-      where: { recipeId: id, userId: DEV_USER_ID },
+      where: { recipeId: id, userId: user.id },
       orderBy: { date: "desc" },
     }),
   ]);

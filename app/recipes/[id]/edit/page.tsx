@@ -1,21 +1,24 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { requireAuth } from "@/lib/auth";
 import { updateRecipe } from "@/lib/actions/recipes";
 import RecipeForm from "@/components/RecipeForm";
+
+export const metadata: Metadata = { title: "Edit Recipe" };
 
 export default async function EditRecipePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const [user, { id }] = await Promise.all([requireAuth(), params]);
 
   const recipe = await prisma.recipe.findFirst({
-    where: { id, userId: DEV_USER_ID },
+    where: { id, userId: user.id },
     include: { tags: { include: { tag: true } } },
   });
 

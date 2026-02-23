@@ -3,20 +3,29 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { getSession } from "@/lib/session";
 import { uploadFile } from "@/lib/storage";
 
 const PAGE_SIZE = 12;
+
+async function requireSession() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  return session;
+}
 
 export async function fetchJournalEntries(
   filters: { q?: string; rating?: string; recipe?: string },
   cursor?: string | null
 ) {
+  const session = await getSession();
+  if (!session) return { entries: [], hasMore: false, nextCursor: null };
+
   const { q, rating, recipe } = filters;
   const minRating = rating ? parseInt(rating) : undefined;
 
   const where = {
-    userId: DEV_USER_ID,
+    userId: session.userId,
     ...(q ? { notes: { contains: q, mode: "insensitive" as const } } : {}),
     ...(minRating ? { rating: { gte: minRating } } : {}),
     ...(recipe ? { recipeId: recipe } : {}),
@@ -68,6 +77,8 @@ function parseMetrics(formData: FormData) {
 }
 
 export async function createJournalEntry(formData: FormData) {
+  const session = await requireSession();
+
   const dateRaw = formData.get("date") as string;
   const notes = formData.get("notes") as string | null;
   const ratingRaw = formData.get("rating") as string | null;
@@ -81,7 +92,7 @@ export async function createJournalEntry(formData: FormData) {
       date,
       notes: notes || null,
       rating: rating && rating >= 1 && rating <= 5 ? rating : null,
-      userId: DEV_USER_ID,
+      userId: session.userId,
       recipeId: recipeId || null,
       ...parseMetrics(formData),
     },
@@ -103,6 +114,8 @@ export async function createJournalEntry(formData: FormData) {
 }
 
 export async function updateJournalEntry(id: string, formData: FormData) {
+  await requireSession();
+
   const dateRaw = formData.get("date") as string;
   const notes = formData.get("notes") as string | null;
   const ratingRaw = formData.get("rating") as string | null;
@@ -141,17 +154,20 @@ export async function updateJournalEntry(id: string, formData: FormData) {
 }
 
 export async function deleteJournalEntry(id: string) {
+  await requireSession();
   await prisma.journalEntry.delete({ where: { id } });
   revalidatePath("/journal");
   redirect("/journal");
 }
 
 export async function deleteJournalPhoto(photoId: string) {
+  const session = await requireSession();
+
   // Verify the photo belongs to an entry owned by this user before deleting
   const photo = await prisma.journalPhoto.findFirst({
     where: {
       id: photoId,
-      journalEntry: { userId: DEV_USER_ID },
+      journalEntry: { userId: session.userId },
     },
   });
 

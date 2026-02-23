@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,20 +9,35 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { getSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { formatDate, formatTime } from "@/lib/utils";
 import DeleteJournalEntryButton from "@/components/DeleteJournalEntryButton";
 import PhotoLightbox from "@/components/PhotoLightbox";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const [session, { id }] = await Promise.all([getSession(), params]);
+  if (!session) return { title: "Entry" };
+  const entry = await prisma.journalEntry.findUnique({
+    where: { id, userId: session.userId },
+    select: { date: true },
+  });
+  return { title: entry ? formatDate(entry.date) : "Entry" };
+}
 
 export default async function JournalEntryPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const [user, { id }] = await Promise.all([requireAuth(), params]);
 
   const entry = await prisma.journalEntry.findUnique({
-    where: { id, userId: DEV_USER_ID },
+    where: { id, userId: user.id },
     include: { recipe: true, photos: true },
   });
 

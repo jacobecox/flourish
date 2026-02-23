@@ -1,9 +1,12 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { requireAuth } from "@/lib/auth";
 import JournalEntryList from "@/components/JournalEntryList";
 import JournalSearch from "@/components/JournalSearch";
+
+export const metadata: Metadata = { title: "Journal" };
 
 const PAGE_SIZE = 12;
 
@@ -12,14 +15,14 @@ export default async function JournalPage({
 }: {
   searchParams: Promise<{ q?: string; rating?: string; recipe?: string }>;
 }) {
-  const { q, rating, recipe } = await searchParams;
+  const [user, { q, rating, recipe }] = await Promise.all([requireAuth(), searchParams]);
   const query = q?.trim() || undefined;
   const minRating = rating ? parseInt(rating) : undefined;
 
   const filters = { q: query, rating, recipe };
 
   const where = {
-    userId: DEV_USER_ID,
+    userId: user.id,
     ...(query ? { notes: { contains: query, mode: "insensitive" as const } } : {}),
     ...(minRating ? { rating: { gte: minRating } } : {}),
     ...(recipe ? { recipeId: recipe } : {}),
@@ -32,9 +35,9 @@ export default async function JournalPage({
       orderBy: { date: "desc" },
       take: PAGE_SIZE + 1,
     }),
-    prisma.journalEntry.count({ where: { userId: DEV_USER_ID } }),
+    prisma.journalEntry.count({ where: { userId: user.id } }),
     prisma.recipe.findMany({
-      where: { userId: DEV_USER_ID },
+      where: { userId: user.id },
       select: { id: true, title: true },
       orderBy: { title: "asc" },
     }),

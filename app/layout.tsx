@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import ScrollToTop from "@/components/ScrollToTop";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: {
@@ -29,11 +30,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -57,7 +60,7 @@ export default function RootLayout({
       </head>
       <body>
         <ScrollToTop />
-        <Navigation />
+        <Navigation user={user ? { name: user.name, email: user.email } : null} />
         <main className="min-h-screen">
           {children}
         </main>

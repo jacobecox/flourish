@@ -1,20 +1,23 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { requireAuth } from "@/lib/auth";
 import { createJournalEntry } from "@/lib/actions/journal";
 import JournalEntryForm from "@/components/JournalEntryForm";
+
+export const metadata: Metadata = { title: "New Entry" };
 
 export default async function NewJournalEntryPage({
   searchParams,
 }: {
   searchParams: Promise<{ recipeId?: string }>;
 }) {
-  const { recipeId } = await searchParams;
+  const [user, { recipeId }] = await Promise.all([requireAuth(), searchParams]);
 
   const recipes = await prisma.recipe.findMany({
-    where: { userId: DEV_USER_ID },
+    where: { userId: user.id },
     select: { id: true, title: true },
     orderBy: { title: "asc" },
   });

@@ -1,26 +1,29 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { requireAuth } from "@/lib/auth";
 import { updateJournalEntry } from "@/lib/actions/journal";
 import JournalEntryForm from "@/components/JournalEntryForm";
+
+export const metadata: Metadata = { title: "Edit Entry" };
 
 export default async function EditJournalEntryPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const [user, { id }] = await Promise.all([requireAuth(), params]);
 
   const [entry, recipes] = await Promise.all([
     prisma.journalEntry.findUnique({
-      where: { id, userId: DEV_USER_ID },
+      where: { id, userId: user.id },
       include: { photos: true },
     }),
     prisma.recipe.findMany({
-      where: { userId: DEV_USER_ID },
+      where: { userId: user.id },
       select: { id: true, title: true },
       orderBy: { title: "asc" },
     }),

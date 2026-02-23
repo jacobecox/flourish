@@ -1,8 +1,11 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import RecipeForm from "@/components/RecipeForm";
 import { createRecipe } from "@/lib/actions/recipes";
+
+export const metadata: Metadata = { title: "New Recipe" };
 
 export default function NewRecipePage() {
   return (

@@ -1,20 +1,23 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { DEV_USER_ID } from "@/lib/dev-user";
+import { requireAuth } from "@/lib/auth";
 import RecipeCard from "@/components/RecipeCard";
 import RecipeSearch from "@/components/RecipeSearch";
+
+export const metadata: Metadata = { title: "Recipes" };
 
 export default async function RecipesPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { q } = await searchParams;
+  const [user, { q }] = await Promise.all([requireAuth(), searchParams]);
   const query = q?.trim().toLowerCase() ?? "";
 
   const allRecipes = await prisma.recipe.findMany({
-    where: { userId: DEV_USER_ID },
+    where: { userId: user.id },
     include: { tags: { include: { tag: true } } },
     orderBy: { createdAt: "desc" },
   });

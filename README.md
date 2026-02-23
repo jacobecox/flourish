@@ -60,8 +60,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Development Roadmap
 
-- [ ] Add starter progress chart
-- [ ] Add Amazon links for tools 
 - [ ] Implement authentication
 - [ ] Migrate image functionality to work with S3
 - [ ] Phase 2: RAG integration for recipe recommendations
