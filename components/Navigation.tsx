@@ -54,14 +54,14 @@ export default function Navigation({ user }: { user: NavUser | null }) {
                 <span className="text-sm text-muted hidden sm:block">
                   {user.name ?? user.email}
                 </span>
-                <Link
+                <a
                   href="/auth/logout"
                   title="Sign out"
                   className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors"
                 >
                   <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
                   <span className="hidden sm:block">Sign out</span>
-                </Link>
+                </a>
               </div>
             ) : (
               <Link
