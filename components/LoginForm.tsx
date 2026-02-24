@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { loginAction } from "@/lib/actions/auth";
 
 function SubmitButton() {
@@ -20,14 +22,87 @@ function SubmitButton() {
 
 export default function LoginForm() {
   const [state, action] = useActionState(loginAction, null);
-  const errorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (state?.error) errorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [state]);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="space-y-4">
+      <form action={action} className="space-y-4">
+        {state?.error && (
+          <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3">
+            {state.error}
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+            placeholder="you@example.com"
+          />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">
+              Password
+            </label>
+            <Link href="/forgot-password" className="text-xs text-muted hover:text-primary transition-colors">
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 pr-10 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <SubmitButton />
+
+        <p className="text-sm text-muted text-center">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-primary hover:text-primary-hover transition-colors font-medium">
+            Sign up
+          </Link>
+        </p>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-[var(--border)]" />
+        </div>
+        <div className="relative flex justify-center text-xs text-muted">
+          <span className="bg-card px-2">or</span>
+        </div>
+      </div>
+
       <a
         href="/auth/google"
         className="flex items-center justify-center gap-3 w-full border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted/10 transition-colors"
@@ -40,65 +115,6 @@ export default function LoginForm() {
         </svg>
         Continue with Google
       </a>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[var(--border)]" />
-        </div>
-        <div className="relative flex justify-center text-xs text-muted">
-          <span className="bg-card px-2">or</span>
-        </div>
-      </div>
-
-    <form action={action} className="space-y-4">
-      {state?.error && (
-        <div
-          ref={errorRef}
-          className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3"
-        >
-          {state.error}
-        </div>
-      )}
-
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
-          placeholder="you@example.com"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors text-sm"
-          placeholder="••••••••"
-        />
-      </div>
-
-      <SubmitButton />
-
-      <p className="text-sm text-muted text-center">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-primary hover:text-primary-hover transition-colors font-medium">
-          Sign up
-        </Link>
-      </p>
-    </form>
     </div>
   );
 }
