@@ -62,15 +62,22 @@ export async function GET(request: NextRequest) {
     sub: string;
     email: string;
     name?: string;
+    given_name?: string;
+    family_name?: string;
   };
+
+  const derivedName =
+    userInfo.name ||
+    [userInfo.given_name, userInfo.family_name].filter(Boolean).join(" ") ||
+    null;
 
   await prisma.user.upsert({
     where: { id: userInfo.sub },
-    create: { id: userInfo.sub, email: userInfo.email, name: userInfo.name ?? null },
-    update: { email: userInfo.email, name: userInfo.name ?? null },
+    create: { id: userInfo.sub, email: userInfo.email, name: derivedName },
+    update: { email: userInfo.email, ...(derivedName ? { name: derivedName } : {}) },
   });
 
   await setSession({ userId: userInfo.sub, email: userInfo.email });
 
-  return NextResponse.redirect(new URL("/recipes", request.url));
+  return NextResponse.redirect(new URL("/", request.url));
 }

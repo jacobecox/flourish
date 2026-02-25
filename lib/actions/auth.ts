@@ -140,7 +140,7 @@ export async function loginAction(
 
   const data = await res.json() as { user: FusionAuthUser };
   await upsertAndLogin(data.user);
-  redirect("/recipes");
+  redirect("/");
 }
 
 export async function registerAction(
@@ -197,7 +197,7 @@ export async function registerAction(
 
   const data = await res.json() as { user: FusionAuthUser };
   await upsertAndLogin(data.user);
-  redirect("/recipes");
+  redirect("/");
 }
 
 export async function resetPasswordAction(
