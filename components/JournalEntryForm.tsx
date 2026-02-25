@@ -52,7 +52,13 @@ export default function JournalEntryForm({
 
   const defaultDate = defaultValues?.date
     ? toDateInputValue(defaultValues.date)
-    : toDateInputValue(new Date());
+    : (() => {
+        const d = new Date();
+        const y = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, "0");
+        const dy = String(d.getDate()).padStart(2, "0");
+        return `${y}-${mo}-${dy}`;
+      })();
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);

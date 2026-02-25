@@ -1,50 +1,115 @@
 # Flourish
 
-A sourdough baking app for tracking recipes and your baking journey.
+A personal sourdough baking companion for tracking recipes, documenting bakes, and monitoring your starter.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15 + React 19 + TypeScript
-- **Styling**: Tailwind CSS
-- **Backend**: Next.js API routes
-- **Database**: PostgreSQL running on Control Plane (planned) with Prisma schema
-- **Auth**: FusionAuth running on Control Plane (planned)
-- **Hosting**: Control Plane (planned)
+- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript
+- **Styling**: Tailwind CSS (dark/light theme)
+- **Database**: PostgreSQL + Prisma 6
+- **Auth**: FusionAuth (email/password + Google OAuth)
+- **Email**: Resend HTTP API (password reset)
+- **Storage**: S3-compatible object storage (journal photos)
+- **Hosting**: Control Plane
+
+## Features
+
+### Authentication
+- Email/password login and registration
+- Google OAuth via FusionAuth OIDC identity provider
+- Forgot password / reset password flow (native UI, email via Resend)
+- HMAC-SHA256 signed session cookies
+
+### Recipe Manager
+- Create, edit, and delete recipes
+- Import recipes from a URL
+- Scale ingredients by serving count
+- Tag-based organization
+- Search and filter
+
+### Baker's Journal
+- Log bakes with notes, rating, and bake metrics (hydration, flour type, bulk/proof time, bake temp)
+- Attach photos with captions
+- Link entries to a recipe
+- Photo lightbox viewer
+- Search and filter entries
+
+### Starter Tracker
+- Step-by-step readiness checklist (feed, bubbles, double, dome, float test, etc.)
+- Record feed time with elapsed timer
+- Progress persisted in localStorage
+
+### Dashboard
+- Personalized greeting
+- Recipe and journal entry counts
+- Quick action shortcuts
+- Recent recipes and journal entries
+
+### Other
+- Landing page for unauthenticated visitors
+- Dark/light theme toggle
+- Custom 404 page
+- SEO: Open Graph image, sitemap, robots.txt, structured metadata
 
 ## Project Structure
 
 ```
 flourish/
-├── app/                  # Next.js App Router
-│   ├── layout.tsx       # Root layout with navigation
-│   ├── page.tsx         # Home page
-│   ├── recipes/         # Recipe manager pages
-│   ├── journal/         # Baker's journal pages
-│   └── globals.css      # Global styles + Tailwind
-├── components/          # Reusable React components
-│   └── Navigation.tsx   # Main navigation
-├── lib/                 # Utilities and helpers
-├── public/              # Static assets
-└── ...config files
+├── app/
+│   ├── auth/               # OAuth callback, Google redirect, logout
+│   ├── forgot-password/    # Forgot password page
+│   ├── journal/            # Journal list, detail, new, edit
+│   ├── login/              # Login page
+│   ├── recipes/            # Recipe list, detail, new, edit, import
+│   ├── register/           # Registration page
+│   ├── reset-password/     # Reset password page
+│   ├── starter/            # Starter tracker page
+│   ├── layout.tsx          # Root layout with navigation + metadata
+│   ├── page.tsx            # Home (dashboard or landing page)
+│   ├── not-found.tsx       # 404 page
+│   ├── opengraph-image.tsx # OG image (edge runtime)
+│   ├── robots.ts           # robots.txt
+│   └── sitemap.ts          # sitemap.xml
+├── components/             # React components (forms, cards, nav, etc.)
+├── lib/
+│   ├── actions/            # Server actions (auth, recipes, journal, import)
+│   ├── auth.ts             # Session reads + getCurrentUser
+│   ├── session.ts          # Cookie-based session (HMAC-SHA256)
+│   ├── prisma.ts           # Prisma client singleton
+│   └── storage.ts          # S3 storage helpers
+├── prisma/
+│   └── schema.prisma       # User, Recipe, Tag, JournalEntry, JournalPhoto
+└── middleware.ts            # Auth gate (redirects unauthenticated users)
 ```
 
-## Phase 1 Features (Planned)
+## Environment Variables
 
-### 1. Recipe Manager
-- Import recipe (paste URL, manual entry)
-- Save to personal collection
-- Basic categorization (tags: sourdough, whole wheat, etc.)
-- Simple search
+```env
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+SESSION_SECRET=<random 32+ char string>
 
-### 2. Baker's Journal
-- Create bake log entry
-- Upload photo
-- Add notes (what worked, what didn't)
-- Link to recipe used
+# Database
+DATABASE_URL=postgresql://...
 
-### 3. Basic Authentication
-- Sign up / login
-- Personal account
+# FusionAuth
+FUSIONAUTH_URL=http://...
+FUSIONAUTH_CLIENT_ID=<application UUID>
+FUSIONAUTH_CLIENT_SECRET=<OAuth2 client secret>
+FUSIONAUTH_API_KEY=<API key with login + registration permissions>
+FUSIONAUTH_GOOGLE_IDP_ID=<UUID of the Google OIDC identity provider>
+
+# Email (Resend)
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+
+# Storage (S3-compatible)
+STORAGE_ENDPOINT=...
+STORAGE_ACCESS_KEY_ID=...
+STORAGE_SECRET_ACCESS_KEY=...
+STORAGE_BUCKET=...
+STORAGE_PUBLIC_URL=...
+```
 
 ## Getting Started
 
@@ -52,13 +117,16 @@ flourish/
 # Install dependencies
 npm install
 
+# Push schema to database
+npx prisma db push
+
 # Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Development Roadmap
+## Roadmap
 
-- [ ] Migrate image functionality to work with S3
-- [ ] Phase 2: RAG integration for recipe recommendations
+- [ ] Migrate image storage to production S3 bucket
+- [ ] RAG integration for AI-powered baking Q&A and recipe suggestions
