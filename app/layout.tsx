@@ -5,6 +5,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://flourishapp.com"),
   title: {
     default: "Flourish",
     template: "%s | Flourish",
@@ -20,13 +21,13 @@ export const metadata: Metadata = {
     siteName: "Flourish",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Flourish — Sourdough Baking Companion",
     description: "Track recipes, document bakes, and refine your sourdough craft.",
   },
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 };
 

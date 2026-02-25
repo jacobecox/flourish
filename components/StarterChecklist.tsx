@@ -68,18 +68,28 @@ function formatElapsed(feedTime: string): string {
   const diff = Date.now() - new Date(feedTime).getTime();
   const totalMins = Math.floor(diff / 60000);
   if (totalMins < 1) return "just now";
-  const hrs = Math.floor(totalMins / 60);
+  const days = Math.floor(totalMins / 1440);
+  const hrs = Math.floor((totalMins % 1440) / 60);
   const mins = totalMins % 60;
+  if (days > 0) {
+    if (hrs === 0) return `${days}d ago`;
+    return `${days}d ${hrs}h ago`;
+  }
   if (hrs === 0) return `${mins}m ago`;
   if (mins === 0) return `${hrs}h ago`;
   return `${hrs}h ${mins}m ago`;
 }
 
+function isFeedToday(feedTime: string): boolean {
+  return new Date(feedTime).toDateString() === new Date().toDateString();
+}
+
 function formatFeedTime(feedTime: string): string {
-  return new Date(feedTime).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const date = new Date(feedTime);
+  const time = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (isFeedToday(feedTime)) return time;
+  const dateStr = date.toLocaleDateString([], { month: "short", day: "numeric" });
+  return `${dateStr} at ${time}`;
 }
 
 export default function StarterChecklist() {
@@ -167,7 +177,7 @@ export default function StarterChecklist() {
           ) : (
             <div className="text-sm text-muted">
               <span className="font-medium text-foreground">
-                Fed at {formatFeedTime(state.feedTime)}
+                {isFeedToday(state.feedTime) ? "Fed at" : "Fed on"} {formatFeedTime(state.feedTime)}
               </span>
               <span className="mx-1.5 text-[var(--border)]">·</span>
               <span>{elapsed}</span>

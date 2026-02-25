@@ -12,6 +12,7 @@ interface NavUser {
 }
 
 const navItems = [
+  { href: "/", label: "Dashboard", exact: true },
   { href: "/recipes", label: "Recipes" },
   { href: "/journal", label: "Journal" },
   { href: "/starter", label: "Starter", icon: faJar },
@@ -35,7 +36,7 @@ export default function Navigation({ user }: { user: NavUser | null }) {
                 key={item.href}
                 href={item.href}
                 className={`inline-flex items-center gap-1.5 transition-colors ${
-                  pathname.startsWith(item.href)
+                  ("exact" in item && item.exact ? pathname === item.href : pathname.startsWith(item.href))
                     ? "font-semibold text-primary border-b-2 border-primary"
                     : "text-muted hover:text-foreground"
                 }`}
