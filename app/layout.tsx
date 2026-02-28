@@ -29,6 +29,14 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Flourish",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default async function RootLayout({
