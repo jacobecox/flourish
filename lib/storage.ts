@@ -1,26 +1,41 @@
-/**
- * Placeholder storage implementation — writes files to public/uploads/.
- *
- * To migrate to real object storage (Cloudflare R2, AWS S3, etc.):
- * 1. Replace the body of `uploadFile` with a presigned URL upload or SDK call.
- * 2. Return the public URL from the storage provider instead of a local path.
- * No other files need to change.
- */
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import crypto from "crypto";
+import sharp from "sharp";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: process.env.STORAGE_ENDPOINT!,
+  credentials: {
+    accessKeyId: process.env.STORAGE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.STORAGE_SECRET_ACCESS_KEY!,
+  },
+});
+
+const MAX_DIMENSION = 2048;
+const WEBP_QUALITY = 85;
 
 export async function uploadFile(file: File): Promise<string> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
+  const processed = await sharp(buffer)
+    .resize(MAX_DIMENSION, MAX_DIMENSION, {
+      fit: "inside",           // preserve aspect ratio
+      withoutEnlargement: true, // never upscale small images
+    })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
 
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const key = `photos/${Date.now()}-${crypto.randomBytes(8).toString("hex")}.webp`;
 
-  await writeFile(path.join(uploadsDir, filename), buffer);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: process.env.STORAGE_BUCKET!,
+      Key: key,
+      Body: processed,
+      ContentType: "image/webp",
+    })
+  );
 
-  return `/uploads/${filename}`;
+  return `${process.env.STORAGE_PUBLIC_URL}/${key}`;
 }
