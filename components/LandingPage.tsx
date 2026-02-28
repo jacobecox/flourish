@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice, faBookOpen, faJar, faArrowRight, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faBookOpen, faJar, faArrowRight, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 const features = [
   {
@@ -10,7 +10,7 @@ const features = [
     bullets: ["Import from any recipe URL", "Manual recipe entry", "Tag and categorize"],
   },
   {
-    icon: faBreadSlice,
+    icon: null,
     title: "Baker's Journal",
     description: "Document every bake with photos, notes, and ratings so you always know what worked — and what to try next.",
     bullets: ["Upload bake photos", "Track hydration, temps, and timing", "Link journal entries to recipes"],
@@ -34,8 +34,8 @@ export default function LandingPage() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="flex flex-col items-center justify-center text-center px-4 py-24 md:py-32">
-        <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full mb-6">
-          <FontAwesomeIcon icon={faBreadSlice} className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-base font-medium px-4 py-1.5 rounded-full mb-6">
+          <img src="/flourish-logo-transparent.svg" alt="" className="w-6 h-6" />
           Your sourdough companion
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight max-w-3xl mb-6">
@@ -73,7 +73,9 @@ export default function LandingPage() {
             {features.map((f) => (
               <div key={f.title} className="bg-background border border-[var(--border)] rounded-xl p-6">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <FontAwesomeIcon icon={f.icon} className="w-5 h-5 text-primary" />
+                  {f.icon
+                    ? <FontAwesomeIcon icon={f.icon} className="w-5 h-5 text-primary" />
+                    : <img src="/flourish-logo-transparent.svg" alt="" className="w-6 h-6" />}
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{f.title}</h3>
                 <p className="text-sm text-muted mb-4">{f.description}</p>

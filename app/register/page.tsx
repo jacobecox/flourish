@@ -1,7 +1,5 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice } from "@fortawesome/free-solid-svg-icons";
 import { getCurrentUser } from "@/lib/auth";
 import RegisterForm from "@/components/RegisterForm";
 
@@ -15,7 +13,7 @@ export default async function RegisterPage() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <FontAwesomeIcon icon={faBreadSlice} className="w-7 h-7 text-primary" />
+          <img src="/flourish-logo-transparent.svg" alt="Flourish" className="w-10 h-10" />
           <span className="text-2xl font-bold text-foreground">Flourish</span>
         </div>
 

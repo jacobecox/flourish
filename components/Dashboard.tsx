@@ -2,7 +2,6 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
-  faBreadSlice,
   faBookOpen,
   faJar,
   faStar,
@@ -71,7 +70,7 @@ export default async function Dashboard({ user }: { user: User }) {
         </div>
         <div className="bg-card border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-center gap-3 mb-1">
-            <FontAwesomeIcon icon={faBreadSlice} className="w-4 h-4 text-primary" />
+            <img src="/flourish-logo-transparent.svg" alt="" className="w-5 h-5" />
             <span className="text-sm font-medium text-muted">Bakes logged</span>
           </div>
           <p className="text-3xl font-bold text-foreground">{journalCount}</p>

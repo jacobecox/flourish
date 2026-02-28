@@ -1,3 +1,6 @@
+// OAuth 2.0 authorization code callback for Google login via FusionAuth.
+// Flow: FusionAuth redirects here with ?code → exchange for access token → fetch user info
+// → upsert user in Prisma → set session cookie → redirect to app.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/session";

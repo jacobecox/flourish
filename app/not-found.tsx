@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 export const metadata: Metadata = { title: "Page Not Found" };
 
@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="text-center max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <FontAwesomeIcon icon={faBreadSlice} className="w-8 h-8 text-primary" />
+            <img src="/flourish-logo-transparent.svg" alt="Flourish" className="w-10 h-10" />
           </div>
         </div>
         <h1 className="text-6xl font-bold text-foreground mb-3">404</h1>

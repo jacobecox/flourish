@@ -9,6 +9,9 @@ export interface SessionPayload {
   email: string;
 }
 
+// Session is stored entirely in a signed cookie — no server-side store required.
+// Cookie format: base64url(JSON payload) + "." + HMAC-SHA256 signature.
+// The payload is readable by the client but tamper-proof; the signature is verified on every read.
 function getSecret(): string {
   const secret = process.env.SESSION_SECRET;
   if (!secret) throw new Error("SESSION_SECRET environment variable is not set");

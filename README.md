@@ -9,7 +9,7 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, a
 - **Database**: PostgreSQL + Prisma 6
 - **Auth**: FusionAuth (email/password + Google OAuth)
 - **Email**: Resend HTTP API (password reset)
-- **Storage**: S3-compatible object storage (journal photos)
+- **Storage**: Cloudflare R2 (journal photos)
 - **Hosting**: Control Plane
 
 ## Features
@@ -50,6 +50,7 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, a
 - Dark/light theme toggle
 - Custom 404 page
 - SEO: Open Graph image, sitemap, robots.txt, structured metadata
+- PWA support: installable on mobile (Web App Manifest, apple-touch-icon, home screen icon)
 
 ## Project Structure
 
@@ -128,5 +129,4 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Roadmap
 
-- [ ] Migrate image storage to production S3 bucket
 - [ ] RAG integration for AI-powered baking Q&A and recipe suggestions

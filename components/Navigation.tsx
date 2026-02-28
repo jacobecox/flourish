@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice, faJar, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faJar, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import ThemeToggle from "./ThemeToggle";
 
 interface NavUser {
@@ -26,7 +26,7 @@ export default function Navigation({ user }: { user: NavUser | null }) {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground hover:text-primary transition-colors">
-            <FontAwesomeIcon icon={faBreadSlice} className="w-5 h-5 text-primary" />
+            <img src="/flourish-logo-transparent.svg" alt="Flourish" className="w-7 h-7" />
             <span>Flourish</span>
           </Link>
 

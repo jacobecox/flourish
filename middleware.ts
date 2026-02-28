@@ -25,9 +25,13 @@ export function middleware(request: NextRequest) {
 
   if (isPublic(pathname)) return NextResponse.next();
 
+  // Note: we read the raw cookie here rather than calling getSession() because middleware
+  // runs on the Edge runtime where the full Node.js crypto API may not be available.
+  // Full signature verification happens in lib/auth.ts for server components and actions.
   const session = request.cookies.get("flourish-session");
   if (!session?.value) {
     const loginUrl = new URL("/login", request.url);
+    // Preserve the intended destination so the login page can redirect back after sign-in.
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }

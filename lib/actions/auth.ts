@@ -92,6 +92,8 @@ function deriveName(user: FusionAuthUser): string | null {
   return parts.length > 0 ? parts.join(" ") : null;
 }
 
+// FusionAuth is the source of truth for authentication. We mirror a minimal user record in
+// Prisma so app data (recipes, journal entries) can reference a local user via foreign key.
 async function upsertAndLogin(user: FusionAuthUser) {
   await prisma.user.upsert({
     where: { id: user.id },
