@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
@@ -305,12 +306,12 @@ export default function RecipeForm({
         >
           {pending ? "Saving…" : submitLabel}
         </button>
-        <a
+        <Link
           href="/recipes"
           className="bg-secondary hover:bg-secondary-hover text-foreground px-6 py-2.5 rounded-lg font-semibold border border-[var(--border)] transition-colors"
         >
           Cancel
-        </a>
+        </Link>
       </div>
     </form>
   );
