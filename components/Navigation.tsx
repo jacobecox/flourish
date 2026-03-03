@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faJar, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faJar, faRightFromBracket, faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import ThemeToggle from "./ThemeToggle";
 
 interface NavUser {
@@ -20,6 +21,10 @@ const navItems = [
 
 export default function Navigation({ user }: { user: NavUser | null }) {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const isActive = (item: typeof navItems[number]) =>
+    "exact" in item && item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
   return (
     <nav className="bg-card border-b border-[var(--border)] shadow-sm">
@@ -30,13 +35,14 @@ export default function Navigation({ user }: { user: NavUser | null }) {
             <span>Flourish</span>
           </Link>
 
-          <div className="flex items-center gap-6">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-6">
             {user && navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`inline-flex items-center gap-1.5 transition-colors ${
-                  ("exact" in item && item.exact ? pathname === item.href : pathname.startsWith(item.href))
+                  isActive(item)
                     ? "font-semibold text-primary border-b-2 border-primary"
                     : "text-muted hover:text-foreground"
                 }`}
@@ -73,8 +79,62 @@ export default function Navigation({ user }: { user: NavUser | null }) {
               </Link>
             )}
           </div>
+
+          {/* Mobile: theme toggle + hamburger */}
+          <div className="flex md:hidden items-center gap-3">
+            <ThemeToggle />
+            {user ? (
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="text-muted hover:text-foreground transition-colors p-1"
+                aria-label="Toggle menu"
+              >
+                <FontAwesomeIcon icon={menuOpen ? faXmark : faBars} className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {menuOpen && user && (
+        <div className="md:hidden border-t border-[var(--border)] bg-card px-4 py-3 flex flex-col gap-1">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-base transition-colors ${
+                isActive(item)
+                  ? "font-semibold text-primary bg-primary/10"
+                  : "text-muted hover:text-foreground hover:bg-secondary"
+              }`}
+            >
+              {"icon" in item && item.icon && (
+                <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
+              )}
+              {item.label}
+            </Link>
+          ))}
+          <div className="mt-2 pt-3 border-t border-[var(--border)] flex items-center justify-between">
+            <span className="text-sm text-muted truncate">{user.name ?? user.email}</span>
+            <a
+              href="/auth/logout"
+              className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors"
+            >
+              <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
+              Sign out
+            </a>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

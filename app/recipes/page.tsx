@@ -37,7 +37,7 @@ export default async function RecipesPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Recipe Manager</h1>
           <p className="text-muted">Import and manage your sourdough recipes</p>

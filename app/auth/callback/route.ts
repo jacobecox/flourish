@@ -7,21 +7,21 @@ import { setSession } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
   // FusionAuth sends ?error=... if the user denied or something went wrong
   if (searchParams.get("error")) {
-    return NextResponse.redirect(new URL("/login?error=oauth_denied", request.url));
+    return NextResponse.redirect(new URL("/login?error=oauth_denied", appUrl));
   }
 
   const code = searchParams.get("code");
   if (!code) {
-    return NextResponse.redirect(new URL("/login?error=missing_code", request.url));
+    return NextResponse.redirect(new URL("/login?error=missing_code", appUrl));
   }
 
   const fusionAuthUrl = process.env.FUSIONAUTH_URL!;
   const clientId = process.env.FUSIONAUTH_CLIENT_ID!;
   const clientSecret = process.env.FUSIONAUTH_CLIENT_SECRET!;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
   // Exchange the auth code for tokens
   let tokenRes: Response;
@@ -38,11 +38,11 @@ export async function GET(request: NextRequest) {
       }),
     });
   } catch {
-    return NextResponse.redirect(new URL("/login?error=auth_server_unreachable", request.url));
+    return NextResponse.redirect(new URL("/login?error=auth_server_unreachable", appUrl));
   }
 
   if (!tokenRes.ok) {
-    return NextResponse.redirect(new URL("/login?error=token_exchange_failed", request.url));
+    return NextResponse.redirect(new URL("/login?error=token_exchange_failed", appUrl));
   }
 
   const { access_token } = await tokenRes.json() as { access_token: string };
@@ -54,11 +54,11 @@ export async function GET(request: NextRequest) {
       headers: { Authorization: `Bearer ${access_token}` },
     });
   } catch {
-    return NextResponse.redirect(new URL("/login?error=userinfo_failed", request.url));
+    return NextResponse.redirect(new URL("/login?error=userinfo_failed", appUrl));
   }
 
   if (!userRes.ok) {
-    return NextResponse.redirect(new URL("/login?error=userinfo_failed", request.url));
+    return NextResponse.redirect(new URL("/login?error=userinfo_failed", appUrl));
   }
 
   const userInfo = await userRes.json() as {
@@ -82,5 +82,5 @@ export async function GET(request: NextRequest) {
 
   await setSession({ userId: userInfo.sub, email: userInfo.email });
 
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(new URL("/", appUrl));
 }
