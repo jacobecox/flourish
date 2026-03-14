@@ -19,12 +19,12 @@ import { upsertEmbedding } from "../lib/embeddings";
 const SOURCES = [
   // King Arthur Baking
   {
-    url: "https://www.kingarthurbaking.com/learn/guides/sourdough/overview",
-    title: "King Arthur: Sourdough Overview",
+    url: "https://www.kingarthurbaking.com/learn/sourdough",
+    title: "King Arthur: How to Bake Sourdough",
   },
   {
-    url: "https://www.kingarthurbaking.com/learn/guides/sourdough/troubleshoot",
-    title: "King Arthur: Sourdough Troubleshooting",
+    url: "https://www.kingarthurbaking.com/learn/guides/sourdough",
+    title: "King Arthur: Sourdough Baking Guide",
   },
   {
     url: "https://www.kingarthurbaking.com/learn/guides/sourdough/maintain",
@@ -32,25 +32,12 @@ const SOURCES = [
   },
   // The Perfect Loaf
   {
-    url: "https://www.theperfectloaf.com/beginners-sourdough-starter/",
-    title: "The Perfect Loaf: Beginner's Sourdough Starter",
+    url: "https://www.theperfectloaf.com/guides/sourdough-starter/",
+    title: "The Perfect Loaf: Ultimate Sourdough Starter Guide",
   },
   {
-    url: "https://www.theperfectloaf.com/troubleshoot-your-sourdough-starter/",
-    title: "The Perfect Loaf: Troubleshoot Your Starter",
-  },
-  {
-    url: "https://www.theperfectloaf.com/guides/how-to-make-sourdough-bread/",
-    title: "The Perfect Loaf: How to Make Sourdough Bread",
-  },
-  // Breadtopia
-  {
-    url: "https://breadtopia.com/make-your-own-sourdough-starter/",
-    title: "Breadtopia: Make Your Own Sourdough Starter",
-  },
-  {
-    url: "https://breadtopia.com/sourdough-bread-baking-tips/",
-    title: "Breadtopia: Sourdough Baking Tips",
+    url: "https://www.theperfectloaf.com/sourdough-bread/",
+    title: "The Perfect Loaf: Sourdough Bread Baker's Handbook",
   },
 ];
 
