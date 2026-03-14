@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate && prisma generate --schema=prisma/vector.prisma",
     "prisma:push:vector": "prisma db push --schema=prisma/vector.prisma",
-    "ingest": "node --env-file=.env --import tsx/esm scripts/ingest.ts"
+    "ingest": "npx tsx --env-file=.env scripts/ingest.ts",
+    "scrape": "npx tsx --env-file=.env scripts/scrape-knowledge.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",
@@ -30,10 +31,12 @@
     "@types/react-dom": "^19.0.2",
     "@types/sharp": "^0.31.1",
     "autoprefixer": "^10.4.20",
+    "cheerio": "^1.2.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.4",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.2"
   }
 }
