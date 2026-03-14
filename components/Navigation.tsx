@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faJar, faRightFromBracket, faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faJar, faRightFromBracket, faBars, faXmark, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
 import ThemeToggle from "./ThemeToggle";
 
 interface NavUser {
@@ -17,6 +17,7 @@ const navItems = [
   { href: "/recipes", label: "Recipes" },
   { href: "/journal", label: "Journal" },
   { href: "/starter", label: "Starter", icon: faJar },
+  { href: "/chat", label: "Ask AI", icon: faWandMagicSparkles },
 ];
 
 export default function Navigation({ user }: { user: NavUser | null }) {

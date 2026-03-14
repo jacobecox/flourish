@@ -112,6 +112,33 @@ export function journalEntryToText(entry: {
     .join("\n");
 }
 
+// ─────────────────────────────────────────────
+// Search the vector DB for chunks relevant to a query
+// Returns user's own data + knowledge base chunks
+// ─────────────────────────────────────────────
+export async function searchEmbeddings(
+  queryVector: number[],
+  userId: string,
+  limit = 6
+): Promise<{ content: string; sourceType: string; metadata: unknown }[]> {
+  const vectorStr = `[${queryVector.join(",")}]`;
+
+  const rows = await prismaVector.$queryRawUnsafe<
+    { content: string; sourceType: string; metadata: unknown }[]
+  >(
+    `SELECT content, "sourceType", metadata
+     FROM "Embedding"
+     WHERE ("userId" = $1 OR "sourceType" = 'knowledge')
+     ORDER BY embedding <-> $2::vector
+     LIMIT $3`,
+    userId,
+    vectorStr,
+    limit
+  );
+
+  return rows;
+}
+
 export function recipeToText(recipe: {
   title: string;
   description?: string | null;
