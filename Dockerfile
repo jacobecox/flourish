@@ -12,8 +12,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client before building
-RUN npx prisma generate
+# Generate both Prisma clients before building
+RUN npx prisma generate && npx prisma generate --schema=prisma/vector.prisma
 
 RUN npm run build
 
@@ -31,9 +31,10 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Copy generated Prisma client (needed at runtime for DB queries)
+# Copy generated Prisma clients (needed at runtime for DB queries)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/lib/generated/prisma-vector ./lib/generated/prisma-vector
 
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
