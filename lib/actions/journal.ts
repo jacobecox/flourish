@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { uploadFile } from "@/lib/storage";
+import {
+  upsertEmbedding,
+  deleteEmbedding,
+  journalEntryToText,
+} from "@/lib/embeddings";
 
 const PAGE_SIZE = 12;
 
@@ -109,6 +114,20 @@ export async function createJournalEntry(formData: FormData) {
     });
   }
 
+  const entryWithRecipe = await prisma.journalEntry.findUnique({
+    where: { id: entry.id },
+    include: { recipe: { select: { title: true } } },
+  });
+  if (entryWithRecipe) {
+    upsertEmbedding({
+      sourceType: "journal_entry",
+      sourceId: entry.id,
+      userId: session.userId,
+      content: journalEntryToText(entryWithRecipe),
+      metadata: { date: entry.date, rating: entry.rating },
+    }).catch(console.error);
+  }
+
   revalidatePath("/journal");
   redirect(`/journal/${entry.id}`);
 }
@@ -148,6 +167,20 @@ export async function updateJournalEntry(id: string, formData: FormData) {
     });
   }
 
+  const updatedEntry = await prisma.journalEntry.findUnique({
+    where: { id },
+    include: { recipe: { select: { title: true } } },
+  });
+  if (updatedEntry) {
+    upsertEmbedding({
+      sourceType: "journal_entry",
+      sourceId: id,
+      userId: updatedEntry.userId,
+      content: journalEntryToText(updatedEntry),
+      metadata: { date: updatedEntry.date, rating: updatedEntry.rating },
+    }).catch(console.error);
+  }
+
   revalidatePath("/journal");
   revalidatePath(`/journal/${id}`);
   redirect(`/journal/${id}`);
@@ -156,6 +189,7 @@ export async function updateJournalEntry(id: string, formData: FormData) {
 export async function deleteJournalEntry(id: string) {
   await requireSession();
   await prisma.journalEntry.delete({ where: { id } });
+  deleteEmbedding("journal_entry", id).catch(console.error);
   revalidatePath("/journal");
   redirect("/journal");
 }

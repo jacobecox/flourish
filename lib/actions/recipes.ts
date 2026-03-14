@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { upsertEmbedding, deleteEmbedding, recipeToText } from "@/lib/embeddings";
 
 async function requireSession() {
   const session = await getSession();
@@ -55,6 +56,14 @@ export async function createRecipe(formData: FormData) {
     },
   });
 
+  upsertEmbedding({
+    sourceType: "recipe",
+    sourceId: recipe.id,
+    userId: session.userId,
+    content: recipeToText(recipe),
+    metadata: { title: recipe.title },
+  }).catch(console.error);
+
   revalidatePath("/recipes");
   redirect(`/recipes/${recipe.id}`);
 }
@@ -62,6 +71,7 @@ export async function createRecipe(formData: FormData) {
 export async function deleteRecipe(id: string) {
   await requireSession();
   await prisma.recipe.delete({ where: { id } });
+  deleteEmbedding("recipe", id).catch(console.error);
   revalidatePath("/recipes");
   redirect("/recipes");
 }
@@ -109,6 +119,17 @@ export async function updateRecipe(id: string, formData: FormData) {
       },
     },
   });
+
+  const updated = await prisma.recipe.findUnique({ where: { id } });
+  if (updated) {
+    upsertEmbedding({
+      sourceType: "recipe",
+      sourceId: id,
+      userId: updated.userId,
+      content: recipeToText(updated),
+      metadata: { title: updated.title },
+    }).catch(console.error);
+  }
 
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${id}`);
