@@ -22,6 +22,8 @@ export default function ChatInterface() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bufferRef = useRef("");
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,21 +51,34 @@ export default function ChatInterface() {
 
       // Add empty assistant message to stream into
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      bufferRef.current = "";
+
+      const flush = () => {
+        const text = bufferRef.current;
+        bufferRef.current = "";
+        rafRef.current = null;
+        if (text) {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant") {
+              return [...prev.slice(0, -1), { ...last, content: last.content + text }];
+            }
+            return prev;
+          });
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === "assistant") {
-            return [
-              ...prev.slice(0, -1),
-              { ...last, content: last.content + chunk },
-            ];
-          }
-          return prev;
-        });
+        if (done) {
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          flush();
+          break;
+        }
+        bufferRef.current += decoder.decode(value);
+        if (!rafRef.current) {
+          rafRef.current = requestAnimationFrame(flush);
+        }
       }
     } catch {
       setMessages((prev) => [
