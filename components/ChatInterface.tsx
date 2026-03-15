@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   role: "user" | "assistant";
@@ -170,6 +171,7 @@ export default function ChatInterface() {
                   <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse rounded-sm" />
                 ) : (
                   <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
                       h1: ({ children }) => <h1 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h1>,
                       h2: ({ children }) => <h2 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h2>,
@@ -180,6 +182,9 @@ export default function ChatInterface() {
                       li: ({ children }) => <li>{children}</li>,
                       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                       code: ({ children }) => <code className="bg-secondary px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                      table: ({ children }) => <div className="overflow-x-auto mb-2"><table className="text-xs border-collapse w-full">{children}</table></div>,
+                      th: ({ children }) => <th className="border border-[var(--border)] px-2 py-1 bg-secondary font-semibold text-left">{children}</th>,
+                      td: ({ children }) => <td className="border border-[var(--border)] px-2 py-1">{children}</td>,
                     }}
                   >
                     {msg.content}
