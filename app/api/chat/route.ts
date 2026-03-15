@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       const claudeStream = anthropic.messages.stream({
         model: "claude-sonnet-4-6",
-        max_tokens: 1024,
+        max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: [
           ...history,
