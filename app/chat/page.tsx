@@ -8,7 +8,7 @@ export default async function ChatPage() {
   await requireAuth();
 
   return (
-    <div className="flex flex-col overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
+    <div className="fixed inset-0 flex flex-col" style={{ top: "64px" }}>
       <ChatInterface />
     </div>
   );

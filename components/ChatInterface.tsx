@@ -26,6 +26,12 @@ export default function ChatInterface() {
   const bufferRef = useRef("");
   const rafRef = useRef<number | null>(null);
 
+  // Prevent body scroll while chat page is mounted
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);

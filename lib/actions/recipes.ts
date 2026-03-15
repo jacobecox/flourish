@@ -56,7 +56,7 @@ export async function createRecipe(formData: FormData) {
     },
   });
 
-  upsertEmbedding({
+  await upsertEmbedding({
     sourceType: "recipe",
     sourceId: recipe.id,
     userId: session.userId,
@@ -122,7 +122,7 @@ export async function updateRecipe(id: string, formData: FormData) {
 
   const updated = await prisma.recipe.findUnique({ where: { id } });
   if (updated) {
-    upsertEmbedding({
+    await upsertEmbedding({
       sourceType: "recipe",
       sourceId: id,
       userId: updated.userId,

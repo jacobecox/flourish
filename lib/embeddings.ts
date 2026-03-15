@@ -118,25 +118,37 @@ export function journalEntryToText(entry: {
 // ─────────────────────────────────────────────
 export async function searchEmbeddings(
   queryVector: number[],
-  userId: string,
-  limit = 6
+  userId: string
 ): Promise<{ content: string; sourceType: string; metadata: unknown }[]> {
   const vectorStr = `[${queryVector.join(",")}]`;
 
-  const rows = await prismaVector.$queryRawUnsafe<
-    { content: string; sourceType: string; metadata: unknown }[]
-  >(
-    `SELECT content, "sourceType", metadata
-     FROM "Embedding"
-     WHERE ("userId" = $1 OR "sourceType" = 'knowledge')
-     ORDER BY embedding <-> $2::vector
-     LIMIT $3`,
-    userId,
-    vectorStr,
-    limit
-  );
+  // Run user data and knowledge base searches separately so user data
+  // is never crowded out by the larger knowledge base
+  const [userRows, knowledgeRows] = await Promise.all([
+    prismaVector.$queryRawUnsafe<
+      { content: string; sourceType: string; metadata: unknown }[]
+    >(
+      `SELECT content, "sourceType", metadata
+       FROM "Embedding"
+       WHERE "userId" = $1
+       ORDER BY embedding <-> $2::vector
+       LIMIT 4`,
+      userId,
+      vectorStr
+    ),
+    prismaVector.$queryRawUnsafe<
+      { content: string; sourceType: string; metadata: unknown }[]
+    >(
+      `SELECT content, "sourceType", metadata
+       FROM "Embedding"
+       WHERE "sourceType" = 'knowledge'
+       ORDER BY embedding <-> $1::vector
+       LIMIT 3`,
+      vectorStr
+    ),
+  ]);
 
-  return rows;
+  return [...userRows, ...knowledgeRows];
 }
 
 export function recipeToText(recipe: {

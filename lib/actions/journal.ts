@@ -119,7 +119,7 @@ export async function createJournalEntry(formData: FormData) {
     include: { recipe: { select: { title: true } } },
   });
   if (entryWithRecipe) {
-    upsertEmbedding({
+    await upsertEmbedding({
       sourceType: "journal_entry",
       sourceId: entry.id,
       userId: session.userId,
@@ -172,7 +172,7 @@ export async function updateJournalEntry(id: string, formData: FormData) {
     include: { recipe: { select: { title: true } } },
   });
   if (updatedEntry) {
-    upsertEmbedding({
+    await upsertEmbedding({
       sourceType: "journal_entry",
       sourceId: id,
       userId: updatedEntry.userId,
