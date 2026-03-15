@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -132,15 +133,32 @@ export default function ChatInterface() {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
+                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
                   msg.role === "user"
-                    ? "bg-primary text-white rounded-br-sm"
+                    ? "bg-primary text-white rounded-br-sm whitespace-pre-wrap"
                     : "bg-card border border-[var(--border)] text-foreground rounded-bl-sm"
                 }`}
               >
-                {msg.content}
-                {msg.role === "assistant" && msg.content === "" && (
+                {msg.role === "user" ? (
+                  msg.content
+                ) : msg.content === "" ? (
                   <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse rounded-sm" />
+                ) : (
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ children }) => <h1 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 first:mt-0">{children}</h3>,
+                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                      ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+                      li: ({ children }) => <li>{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      code: ({ children }) => <code className="bg-secondary px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
                 )}
               </div>
             </div>
