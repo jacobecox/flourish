@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     ? `Context from your baking data and knowledge base:\n\n${context}\n\n---\n\nQuestion: ${message}`
     : message;
 
-  // Stream Claude's response
+  // Stream Claude's response as SSE — Cloudflare does not buffer text/event-stream
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -71,18 +71,21 @@ export async function POST(request: NextRequest) {
           event.type === "content_block_delta" &&
           event.delta.type === "text_delta"
         ) {
-          controller.enqueue(encoder.encode(event.delta.text));
+          const data = `data: ${JSON.stringify(event.delta.text)}\n\n`;
+          controller.enqueue(encoder.encode(data));
         }
       }
 
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       controller.close();
     },
   });
 
   return new Response(stream, {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
       "X-Accel-Buffering": "no",
     },
   });

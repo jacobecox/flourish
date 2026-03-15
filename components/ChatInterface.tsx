@@ -53,6 +53,7 @@ export default function ChatInterface() {
       // Add empty assistant message to stream into
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
       bufferRef.current = "";
+      let sseBuffer = "";
 
       const flush = () => {
         const text = bufferRef.current;
@@ -76,16 +77,31 @@ export default function ChatInterface() {
           flush();
           break;
         }
-        bufferRef.current += decoder.decode(value);
-        if (!rafRef.current) {
-          rafRef.current = requestAnimationFrame(flush);
+
+        // Parse SSE lines
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        sseBuffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6);
+          if (payload === "[DONE]") break;
+          try {
+            bufferRef.current += JSON.parse(payload);
+            if (!rafRef.current) {
+              rafRef.current = requestAnimationFrame(flush);
+            }
+          } catch {}
         }
       }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Something went wrong. Please try again." },
-      ]);
+      // Ignore connection-close errors if content was already received
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant" && last.content.length > 0) return prev;
+        return [...prev, { role: "assistant", content: "Something went wrong. Please try again." }];
+      });
     } finally {
       setLoading(false);
       inputRef.current?.focus();
