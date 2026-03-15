@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { message } = await request.json();
+  const { message, history = [] } = await request.json();
   if (!message?.trim()) {
     return new Response("Message required", { status: 400 });
   }
@@ -63,7 +63,10 @@ export async function POST(request: NextRequest) {
         model: "claude-sonnet-4-6",
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userMessage }],
+        messages: [
+          ...history,
+          { role: "user", content: userMessage },
+        ],
       });
 
       for await (const event of claudeStream) {
