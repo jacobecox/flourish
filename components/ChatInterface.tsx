@@ -60,7 +60,6 @@ export default function ChatInterface() {
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
 
-      // Add empty assistant message to stream into
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
       bufferRef.current = "";
       let sseBuffer = "";
@@ -88,7 +87,6 @@ export default function ChatInterface() {
           break;
         }
 
-        // Parse SSE lines
         sseBuffer += decoder.decode(value, { stream: true });
         const lines = sseBuffer.split("\n");
         sseBuffer = lines.pop() ?? "";
@@ -106,10 +104,9 @@ export default function ChatInterface() {
         }
       }
     } catch {
-      // Ignore connection-close errors if content was already received
       setMessages((prev) => {
         const last = prev[prev.length - 1];
-        if (last?.role === "assistant" && last.content.length > 0) return prev;
+        if (last?.role === "assistant" && (last.content.length > 0 || bufferRef.current.length > 0)) return prev;
         return [...prev, { role: "assistant", content: "Something went wrong. Please try again." }];
       });
     } finally {
