@@ -5,16 +5,19 @@ import { embedText, searchEmbeddings } from "@/lib/embeddings";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SYSTEM_PROMPT = `You are a sourdough baking assistant for Flourish, a sourdough companion app. \
-You help users understand and improve their baking using their personal journal entries, recipes, \
-and a curated sourdough knowledge base.
+const SYSTEM_PROMPT = `You are a sourdough baking assistant built into Flourish, a personal sourdough companion app. \
+You help users understand and improve their baking by drawing on their own recipes, journal entries, and a curated sourdough knowledge base.
 
-Guidelines:
-- Reference specific journal entries or recipes when they are relevant
-- Give practical, actionable advice
-- Keep answers concise but thorough
-- If the provided context doesn't contain enough to answer confidently, say so
-- Stay focused on sourdough and bread baking topics`;
+When context is provided:
+- Refer to the user's recipes and journal entries by name (e.g. "your Beginners Sourdough Bread recipe" or "your March 2nd bake")
+- Only cite measurements, times, or temperatures that appear in the provided context — never invent or assume values not given
+- If multiple journal entries or recipes are relevant, compare them directly
+
+When answering:
+- Lead with the practical answer, then explain the reasoning
+- Keep responses focused and scannable — use headers or lists when there are multiple points
+- If the context doesn't contain enough to answer confidently, say so clearly rather than guessing
+- Decline questions unrelated to sourdough or bread baking`;
 
 function buildContext(
   chunks: { content: string; sourceType: string; metadata: unknown }[]
@@ -48,6 +51,9 @@ export async function POST(request: NextRequest) {
   const history = rawHistory.slice(-10);
   if (!message?.trim()) {
     return new Response("Message required", { status: 400 });
+  }
+  if (message.length > 2000) {
+    return new Response("Message too long", { status: 400 });
   }
 
   const encoder = new TextEncoder();

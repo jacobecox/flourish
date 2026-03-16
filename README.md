@@ -1,15 +1,18 @@
 # Flourish
 
-A personal sourdough baking companion for tracking recipes, documenting bakes, and monitoring your starter.
+A personal sourdough baking companion for tracking recipes, documenting bakes, monitoring your starter, and getting AI-powered baking advice.
 
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router) + React 19 + TypeScript
 - **Styling**: Tailwind CSS (dark/light theme)
 - **Database**: PostgreSQL + Prisma 6
+- **Vector Database**: PostgreSQL + pgvector (separate DB)
 - **Auth**: FusionAuth (email/password + Google OAuth)
 - **Email**: Resend HTTP API (password reset)
 - **Storage**: Cloudflare R2 (journal photos)
+- **Embeddings**: Voyage AI `voyage-3`
+- **LLM**: Anthropic Claude Sonnet
 - **Hosting**: Control Plane
 
 ## Features
@@ -39,6 +42,13 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, a
 - Record feed time with elapsed timer
 - Progress persisted in localStorage
 
+### AI Baking Assistant (RAG)
+- Conversational chat powered by Claude Sonnet
+- Answers questions using the user's own recipes and journal entries as context
+- Supplemented by a curated sourdough knowledge base (scraped + embedded)
+- Streaming responses with markdown rendering (tables, lists, bold, code)
+- See [docs/rag-architecture.md](docs/rag-architecture.md) for full implementation details
+
 ### Dashboard
 - Personalized greeting
 - Recipe and journal entry counts
@@ -57,7 +67,9 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, a
 ```
 flourish/
 ├── app/
+│   ├── api/chat/           # SSE streaming chat endpoint (RAG + Claude)
 │   ├── auth/               # OAuth callback, Google redirect, logout
+│   ├── chat/               # AI assistant page
 │   ├── forgot-password/    # Forgot password page
 │   ├── journal/            # Journal list, detail, new, edit
 │   ├── login/              # Login page
@@ -71,15 +83,23 @@ flourish/
 │   ├── opengraph-image.tsx # OG image (edge runtime)
 │   ├── robots.ts           # robots.txt
 │   └── sitemap.ts          # sitemap.xml
-├── components/             # React components (forms, cards, nav, etc.)
+├── components/             # React components (forms, cards, nav, chat UI, etc.)
+├── docs/
+│   └── rag-architecture.md # RAG + AI chat implementation details
 ├── lib/
 │   ├── actions/            # Server actions (auth, recipes, journal, import)
 │   ├── auth.ts             # Session reads + getCurrentUser
+│   ├── embeddings.ts       # Voyage AI embedding + vector search utilities
+│   ├── prisma.ts           # Prisma client singleton (app DB)
+│   ├── prismaVector.ts     # Prisma client singleton (vector DB)
 │   ├── session.ts          # Cookie-based session (HMAC-SHA256)
-│   ├── prisma.ts           # Prisma client singleton
 │   └── storage.ts          # S3 storage helpers
 ├── prisma/
-│   └── schema.prisma       # User, Recipe, Tag, JournalEntry, JournalPhoto
+│   ├── schema.prisma       # User, Recipe, Tag, JournalEntry, JournalPhoto
+│   └── vector.prisma       # Embedding model (pgvector)
+├── scripts/
+│   ├── ingest.ts           # Backfill embeddings for existing user data
+│   └── scrape-knowledge.ts # One-time knowledge base scraper
 └── middleware.ts            # Auth gate (redirects unauthenticated users)
 ```
 
@@ -92,6 +112,7 @@ SESSION_SECRET=<random 32+ char string>
 
 # Database
 DATABASE_URL=postgresql://...
+VECTOR_DATABASE_URL=postgresql://...
 
 # FusionAuth
 FUSIONAUTH_URL=http://...
@@ -110,6 +131,10 @@ STORAGE_ACCESS_KEY_ID=...
 STORAGE_SECRET_ACCESS_KEY=...
 STORAGE_BUCKET=...
 STORAGE_PUBLIC_URL=...
+
+# AI / Embeddings
+ANTHROPIC_API_KEY=sk-ant-...
+VOYAGE_API_KEY=pa-...
 ```
 
 ## Getting Started
@@ -120,6 +145,11 @@ npm install
 
 # Push schema to database
 npx prisma db push
+npx prisma db push --schema=prisma/vector.prisma
+
+# Generate Prisma clients
+npx prisma generate
+npx prisma generate --schema=prisma/vector.prisma
 
 # Run development server
 npm run dev
@@ -127,6 +157,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Roadmap
+### AI Knowledge Base (one-time setup)
 
-- [ ] RAG integration for AI-powered baking Q&A and recipe suggestions
+```bash
+# Backfill embeddings for existing recipes + journal entries
+npm run ingest
+
+# Scrape and embed the sourdough knowledge base
+npm run scrape
+```
