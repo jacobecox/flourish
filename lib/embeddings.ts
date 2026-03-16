@@ -119,16 +119,16 @@ export function journalEntryToText(entry: {
 export async function searchEmbeddings(
   queryVector: number[],
   userId: string
-): Promise<{ content: string; sourceType: string; metadata: unknown }[]> {
+): Promise<{ content: string; sourceType: string; sourceId: string | null; metadata: unknown }[]> {
   const vectorStr = `[${queryVector.join(",")}]`;
 
   // Run user data and knowledge base searches separately so user data
   // is never crowded out by the larger knowledge base
   const [userRows, knowledgeRows] = await Promise.all([
     prismaVector.$queryRawUnsafe<
-      { content: string; sourceType: string; metadata: unknown }[]
+      { content: string; sourceType: string; sourceId: string | null; metadata: unknown }[]
     >(
-      `SELECT content, "sourceType", metadata
+      `SELECT content, "sourceType", "sourceId", metadata
        FROM "Embedding"
        WHERE "userId" = $1
        ORDER BY embedding <-> $2::vector
@@ -137,9 +137,9 @@ export async function searchEmbeddings(
       vectorStr
     ),
     prismaVector.$queryRawUnsafe<
-      { content: string; sourceType: string; metadata: unknown }[]
+      { content: string; sourceType: string; sourceId: string | null; metadata: unknown }[]
     >(
-      `SELECT content, "sourceType", metadata
+      `SELECT content, "sourceType", "sourceId", metadata
        FROM "Embedding"
        WHERE "sourceType" = 'knowledge'
        ORDER BY embedding <-> $1::vector

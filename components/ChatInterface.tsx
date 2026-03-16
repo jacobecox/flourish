@@ -6,9 +6,15 @@ import { faPaperPlane, faWandMagicSparkles } from "@fortawesome/free-solid-svg-i
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+interface Source {
+  label: string;
+  href: string;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: Source[];
 }
 
 const SUGGESTIONS = [
@@ -96,9 +102,23 @@ export default function ChatInterface() {
           const payload = line.slice(6);
           if (payload === "[DONE]") break;
           try {
-            bufferRef.current += JSON.parse(payload);
-            if (!rafRef.current) {
-              rafRef.current = requestAnimationFrame(flush);
+            const parsed = JSON.parse(payload);
+            if (typeof parsed === "string") {
+              bufferRef.current += parsed;
+              if (!rafRef.current) {
+                rafRef.current = requestAnimationFrame(flush);
+              }
+            } else if (parsed?.type === "sources") {
+              // Flush any buffered text first, then attach sources
+              if (rafRef.current) cancelAnimationFrame(rafRef.current);
+              flush();
+              setMessages((prev) => {
+                const last = prev[prev.length - 1];
+                if (last?.role === "assistant") {
+                  return [...prev.slice(0, -1), { ...last, sources: parsed.items }];
+                }
+                return prev;
+              });
             }
           } catch {}
         }
@@ -167,25 +187,40 @@ export default function ChatInterface() {
                 ) : msg.content === "" ? (
                   <span className="text-muted italic animate-pulse">Proofing your answer…</span>
                 ) : (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      h1: ({ children }) => <h1 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 first:mt-0">{children}</h3>,
-                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                      ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
-                      li: ({ children }) => <li>{children}</li>,
-                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      code: ({ children }) => <code className="bg-secondary px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-                      table: ({ children }) => <div className="overflow-x-auto mb-2"><table className="text-xs border-collapse w-full">{children}</table></div>,
-                      th: ({ children }) => <th className="border border-[var(--border)] px-2 py-1 bg-secondary font-semibold text-left">{children}</th>,
-                      td: ({ children }) => <td className="border border-[var(--border)] px-2 py-1">{children}</td>,
-                    }}
-                  >
-                    {msg.content}
-                  </ReactMarkdown>
+                  <>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ children }) => <h1 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-base font-bold mb-1 mt-2 first:mt-0">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 first:mt-0">{children}</h3>,
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        code: ({ children }) => <code className="bg-secondary px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                        table: ({ children }) => <div className="overflow-x-auto mb-2"><table className="text-xs border-collapse w-full">{children}</table></div>,
+                        th: ({ children }) => <th className="border border-[var(--border)] px-2 py-1 bg-secondary font-semibold text-left">{children}</th>,
+                        td: ({ children }) => <td className="border border-[var(--border)] px-2 py-1">{children}</td>,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[var(--border)]">
+                        {msg.sources.map((s) => (
+                          <a
+                            key={s.href}
+                            href={s.href}
+                            className="text-xs px-2.5 py-1 rounded-full border border-[var(--border)] bg-secondary text-muted hover:text-foreground hover:border-primary transition-colors"
+                          >
+                            {s.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

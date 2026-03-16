@@ -121,6 +121,28 @@ export async function POST(request: NextRequest) {
 
         const final = await claudeStream.finalMessage();
         console.log(`Chat stream complete — stop_reason: ${final.stop_reason}, tokens: ${final.usage.output_tokens}`);
+
+        // Send source citations — only user-owned records with internal links
+        const sources = chunks
+          .filter((c) => (c.sourceType === "recipe" || c.sourceType === "journal_entry") && c.sourceId)
+          .map((c) => {
+            const meta = c.metadata as Record<string, unknown> | null;
+            const label =
+              c.sourceType === "recipe"
+                ? String(meta?.title ?? "Recipe")
+                : `Journal — ${String(meta?.date ?? "").split("T")[0]}`;
+            const href =
+              c.sourceType === "recipe"
+                ? `/recipes/${c.sourceId}`
+                : `/journal/${c.sourceId}`;
+            return { label, href };
+          })
+          // Deduplicate by href
+          .filter((s, i, arr) => arr.findIndex((x) => x.href === s.href) === i);
+
+        if (sources.length > 0) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "sources", items: sources })}\n\n`));
+        }
       } catch (err) {
         console.error("Chat stream error:", err);
       } finally {
