@@ -165,7 +165,7 @@ export default function ChatInterface() {
                 {msg.role === "user" ? (
                   msg.content
                 ) : msg.content === "" ? (
-                  <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse rounded-sm" />
+                  <span className="text-muted italic animate-pulse">Proofing your answer…</span>
                 ) : (
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}

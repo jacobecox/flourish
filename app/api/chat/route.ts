@@ -5,6 +5,29 @@ import { embedText, searchEmbeddings } from "@/lib/embeddings";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// In-memory rate limiter — 20 requests per user per hour
+// Safe for single-instance deployments (maxScale: 1)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function checkRateLimit(userId: string): { allowed: boolean; retryAfterSecs: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+
+  if (!entry || now >= entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return { allowed: true, retryAfterSecs: 0 };
+  }
+
+  if (entry.count >= RATE_LIMIT) {
+    return { allowed: false, retryAfterSecs: Math.ceil((entry.resetAt - now) / 1000) };
+  }
+
+  entry.count++;
+  return { allowed: true, retryAfterSecs: 0 };
+}
+
 const SYSTEM_PROMPT = `You are a sourdough baking assistant built into Flourish, a personal sourdough companion app. \
 You help users understand and improve their baking by drawing on their own recipes, journal entries, and a curated sourdough knowledge base.
 
@@ -44,6 +67,14 @@ export async function POST(request: NextRequest) {
   const session = await getSession();
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  const { allowed, retryAfterSecs } = checkRateLimit(session.userId);
+  if (!allowed) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": String(retryAfterSecs) },
+    });
   }
 
   const { message, history: rawHistory = [] } = await request.json();
