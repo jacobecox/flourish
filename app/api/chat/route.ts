@@ -55,7 +55,7 @@ function buildContext(
           ? "Your Journal"
           : chunk.sourceType === "recipe"
           ? "Your Recipe"
-          : `Knowledge Base${meta?.title ? ` — ${meta.title}` : ""}`;
+          : `Knowledge Base${typeof meta?.title === "string" && meta.title ? ` — ${meta.title}` : ""}`;
       return `[${label}]\n${chunk.content}`;
     })
     .join("\n\n---\n\n");
@@ -123,14 +123,22 @@ export async function POST(request: NextRequest) {
         console.log(`Chat stream complete — stop_reason: ${final.stop_reason}, tokens: ${final.usage.output_tokens}`);
 
         // Send source citations — only user-owned records with internal links
+        console.log("Chat chunks:", chunks.map((c) => ({
+          sourceType: c.sourceType,
+          sourceId: c.sourceId,
+          metadata: c.metadata,
+        })));
+
         const sources = chunks
           .filter((c) => (c.sourceType === "recipe" || c.sourceType === "journal_entry") && c.sourceId)
           .map((c) => {
             const meta = c.metadata as Record<string, unknown> | null;
+            const rawTitle = meta?.title;
+            const rawDate = meta?.date;
             const label =
               c.sourceType === "recipe"
-                ? String(meta?.title ?? "Recipe")
-                : `Journal — ${String(meta?.date ?? "").split("T")[0]}`;
+                ? (typeof rawTitle === "string" && rawTitle ? rawTitle : "Recipe")
+                : `Journal — ${typeof rawDate === "string" ? rawDate.split("T")[0] : ""}`;
             const href =
               c.sourceType === "recipe"
                 ? `/recipes/${c.sourceId}`
@@ -140,6 +148,7 @@ export async function POST(request: NextRequest) {
           // Deduplicate by href
           .filter((s, i, arr) => arr.findIndex((x) => x.href === s.href) === i);
 
+        console.log("Sources to send:", sources);
         if (sources.length > 0) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "sources", items: sources })}\n\n`));
         }
