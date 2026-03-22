@@ -26,7 +26,7 @@ export default function FavoriteButton({
           await toggleFavorite(recipeId);
         });
       }}
-      className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-all ${
+      className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-sm shadow-md transition-all ${
         optimisticFav
           ? "text-primary"
           : "text-muted opacity-0 group-hover:opacity-100 hover:text-primary"

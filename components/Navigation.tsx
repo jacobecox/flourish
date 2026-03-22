@@ -59,9 +59,12 @@ export default function Navigation({ user }: { user: NavUser | null }) {
 
             {user ? (
               <div className="flex items-center gap-3 pl-2 border-l border-[var(--border)]">
-                <span className="text-sm text-muted hidden sm:block">
+                <Link
+                  href="/account"
+                  className="text-sm text-muted hover:text-foreground transition-colors hidden sm:block"
+                >
                   {user.name ?? user.email}
-                </span>
+                </Link>
                 <a
                   href="/auth/logout"
                   title="Sign out"
@@ -125,10 +128,16 @@ export default function Navigation({ user }: { user: NavUser | null }) {
             </Link>
           ))}
           <div className="mt-2 pt-3 border-t border-[var(--border)] flex items-center justify-between">
-            <span className="text-sm text-muted truncate">{user.name ?? user.email}</span>
+            <Link
+              href="/account"
+              onClick={() => setMenuOpen(false)}
+              className="text-sm text-muted hover:text-foreground transition-colors truncate"
+            >
+              {user.name ?? user.email}
+            </Link>
             <a
               href="/auth/logout"
-              className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors shrink-0"
             >
               <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
               Sign out

@@ -2,7 +2,115 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { setSession } from "@/lib/session";
+import { getSession, setSession } from "@/lib/session";
+
+export async function updateDisplayNameAction(
+  _prevState: { error: string } | { success: true } | null,
+  formData: FormData
+): Promise<{ error: string } | { success: true }> {
+  const session = await getSession();
+  if (!session) return { error: "Not authenticated." };
+
+  const displayName = (formData.get("displayName") as string)?.trim();
+  if (!displayName) return { error: "Display name cannot be empty." };
+
+  const fusionAuthUrl = process.env.FUSIONAUTH_URL!;
+  const apiKey = process.env.FUSIONAUTH_API_KEY!;
+
+  try {
+    await fetch(`${fusionAuthUrl}/api/user/${session.userId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: apiKey },
+      body: JSON.stringify({ user: { fullName: displayName } }),
+    });
+  } catch {
+    // Non-fatal — still update local DB
+  }
+
+  await prisma.user.update({
+    where: { id: session.userId },
+    data: { name: displayName },
+  });
+
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath("/account");
+  return { success: true };
+}
+
+export async function changePasswordAction(
+  _prevState: { error: string } | { success: true } | null,
+  formData: FormData
+): Promise<{ error: string } | { success: true }> {
+  const session = await getSession();
+  if (!session) return { error: "Not authenticated." };
+
+  const currentPassword = formData.get("currentPassword") as string;
+  const password = formData.get("password") as string;
+  const passwordConfirm = formData.get("passwordConfirm") as string;
+
+  if (!currentPassword || !password || !passwordConfirm) {
+    return { error: "All password fields are required." };
+  }
+  if (password !== passwordConfirm) {
+    return { error: "New passwords do not match." };
+  }
+  if (password.length < 8) {
+    return { error: "New password must be at least 8 characters." };
+  }
+
+  const fusionAuthUrl = process.env.FUSIONAUTH_URL!;
+  const apiKey = process.env.FUSIONAUTH_API_KEY!;
+  const applicationId = process.env.FUSIONAUTH_CLIENT_ID!;
+
+  // Step 1: verify current password and get a change token
+  let initRes: Response;
+  try {
+    initRes = await fetch(`${fusionAuthUrl}/api/user/change-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: apiKey },
+      body: JSON.stringify({
+        loginId: session.email,
+        currentPassword,
+        applicationId,
+        sendForgotPasswordEmail: false,
+      }),
+    });
+  } catch {
+    return { error: "Could not reach the authentication server. Please try again." };
+  }
+
+  if (initRes.status === 404 || initRes.status === 422) {
+    return { error: "Current password is incorrect." };
+  }
+  if (!initRes.ok) {
+    return { error: "Current password is incorrect." };
+  }
+
+  const { changePasswordId } = await initRes.json() as { changePasswordId: string };
+
+  // Step 2: set the new password using the token
+  let changeRes: Response;
+  try {
+    changeRes = await fetch(`${fusionAuthUrl}/api/user/change-password/${changePasswordId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: apiKey },
+      body: JSON.stringify({ password, passwordConfirm }),
+    });
+  } catch {
+    return { error: "Could not reach the authentication server. Please try again." };
+  }
+
+  if (!changeRes.ok) {
+    try {
+      const body = await changeRes.json() as { fieldErrors?: Record<string, { message: string }[]> };
+      const firstField = body.fieldErrors ? Object.values(body.fieldErrors)[0] : null;
+      if (firstField?.[0]?.message) return { error: firstField[0].message };
+    } catch { /* ignore */ }
+    return { error: "Password could not be updated. Please try again." };
+  }
+
+  return { success: true };
+}
 
 export async function forgotPasswordAction(
   _prevState: { error: string } | { success: true } | null,
