@@ -45,6 +45,7 @@ export default async function EditRecipePage({
           title: recipe.title,
           description: recipe.description ?? undefined,
           sourceUrl: recipe.sourceUrl ?? undefined,
+          imageUrl: recipe.imageUrl ?? undefined,
           servings: recipe.servings,
           prepTime: recipe.prepTime,
           cookTime: recipe.cookTime,

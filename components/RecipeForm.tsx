@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faTrash, faImage, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 type RecipeFormProps = {
   action: (formData: FormData) => Promise<void>;
@@ -11,6 +11,7 @@ type RecipeFormProps = {
     title?: string;
     description?: string;
     sourceUrl?: string;
+    imageUrl?: string;
     servings?: number | null;
     prepTime?: number | null;
     cookTime?: number | null;
@@ -33,6 +34,9 @@ export default function RecipeForm({
     defaultValues.instructions?.length ? defaultValues.instructions : [""]
   );
   const [pending, setPending] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(defaultValues.imageUrl ?? null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(defaultValues.imageUrl ?? null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function addIngredient() {
     setIngredients((prev) => [...prev, ""]);
@@ -90,8 +94,66 @@ export default function RecipeForm({
     "w-full bg-card border border-[var(--border)] rounded-lg px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-primary transition-colors";
   const labelClass = "block text-sm font-medium text-foreground mb-1";
 
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setExistingImageUrl(null);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  function removeImage() {
+    setImagePreview(null);
+    setExistingImageUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Photo */}
+      <div>
+        <label className={labelClass}>Photo</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          name="imageFile"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+        <input type="hidden" name="imageUrl" value={existingImageUrl ?? ""} />
+        {imagePreview ? (
+          <div className="relative rounded-lg overflow-hidden border border-[var(--border)] h-52">
+            <img src={imagePreview} alt="Recipe preview" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-white text-foreground text-sm font-medium px-3 py-1.5 rounded-lg"
+              >
+                Change photo
+              </button>
+              <button
+                type="button"
+                onClick={removeImage}
+                className="bg-white/20 text-white p-1.5 rounded-lg"
+                aria-label="Remove photo"
+              >
+                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full h-36 border-2 border-dashed border-[var(--border)] rounded-lg flex flex-col items-center justify-center gap-2 text-muted hover:border-primary hover:text-primary transition-colors"
+          >
+            <FontAwesomeIcon icon={faImage} className="w-6 h-6" />
+            <span className="text-sm font-medium">Add a photo</span>
+          </button>
+        )}
+      </div>
+
       {/* Title */}
       <div>
         <label htmlFor="title" className={labelClass}>

@@ -4,6 +4,7 @@ export type ImportedRecipe = {
   title: string;
   description?: string;
   sourceUrl: string;
+  imageUrl?: string;
   ingredients: string[];
   instructions: string[];
   prepTime?: number;
@@ -82,6 +83,19 @@ function parseInstructions(raw: unknown): string[] {
       .filter(Boolean);
   }
   return [];
+}
+
+// Extract the first image URL from a JSON-LD image field (string, ImageObject, or array)
+function parseImage(image: unknown): string | undefined {
+  if (!image) return undefined;
+  if (typeof image === "string") return image || undefined;
+  if (Array.isArray(image)) return parseImage(image[0]);
+  if (typeof image === "object" && image !== null) {
+    const obj = image as Record<string, unknown>;
+    if (typeof obj.url === "string") return obj.url || undefined;
+    if (typeof obj.contentUrl === "string") return obj.contentUrl || undefined;
+  }
+  return undefined;
 }
 
 // Parse tags from keywords field — can be comma-separated string or array
@@ -202,6 +216,7 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
       prepTime: parseIsoDuration(recipe.prepTime),
       cookTime: parseIsoDuration(recipe.cookTime),
       servings: parseServings(recipe.recipeYield),
+      imageUrl: parseImage(recipe.image),
       tags: parseTags(recipe.keywords),
     },
   };

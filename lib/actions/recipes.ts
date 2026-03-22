@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { upsertEmbedding, deleteEmbedding, recipeToText } from "@/lib/embeddings";
+import { uploadFile } from "@/lib/storage";
 
 async function requireSession() {
   const session = await getSession();
@@ -22,6 +23,8 @@ export async function createRecipe(formData: FormData) {
   const prepTime = formData.get("prepTime") ? Number(formData.get("prepTime")) : null;
   const cookTime = formData.get("cookTime") ? Number(formData.get("cookTime")) : null;
   const tagsRaw = formData.get("tags") as string | null;
+  const imageFile = formData.get("imageFile") as File | null;
+  const imageUrlField = formData.get("imageUrl") as string | null;
 
   const ingredients = formData.getAll("ingredients[]").map((v) => String(v)).filter(Boolean);
   const instructions = formData.getAll("instructions[]").map((v) => String(v)).filter(Boolean);
@@ -30,11 +33,17 @@ export async function createRecipe(formData: FormData) {
     ? tagsRaw.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
     : [];
 
+  let imageUrl: string | null = imageUrlField || null;
+  if (imageFile && imageFile.size > 0) {
+    imageUrl = await uploadFile(imageFile);
+  }
+
   const recipe = await prisma.recipe.create({
     data: {
       title,
       description: description || null,
       sourceUrl: sourceUrl || null,
+      imageUrl,
       servings,
       prepTime,
       cookTime,
@@ -68,6 +77,20 @@ export async function createRecipe(formData: FormData) {
   redirect(`/recipes/${recipe.id}`);
 }
 
+export async function toggleFavorite(id: string) {
+  const session = await requireSession();
+  const recipe = await prisma.recipe.findUnique({
+    where: { id, userId: session.userId },
+    select: { isFavorited: true },
+  });
+  if (!recipe) return;
+  await prisma.recipe.update({
+    where: { id },
+    data: { isFavorited: !recipe.isFavorited },
+  });
+  revalidatePath("/recipes");
+}
+
 export async function deleteRecipe(id: string) {
   await requireSession();
   await prisma.recipe.delete({ where: { id } });
@@ -86,6 +109,8 @@ export async function updateRecipe(id: string, formData: FormData) {
   const prepTime = formData.get("prepTime") ? Number(formData.get("prepTime")) : null;
   const cookTime = formData.get("cookTime") ? Number(formData.get("cookTime")) : null;
   const tagsRaw = formData.get("tags") as string | null;
+  const imageFile = formData.get("imageFile") as File | null;
+  const imageUrlField = formData.get("imageUrl") as string | null;
 
   const ingredients = formData.getAll("ingredients[]").map((v) => String(v)).filter(Boolean);
   const instructions = formData.getAll("instructions[]").map((v) => String(v)).filter(Boolean);
@@ -93,6 +118,11 @@ export async function updateRecipe(id: string, formData: FormData) {
   const tagNames = tagsRaw
     ? tagsRaw.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
     : [];
+
+  let imageUrl: string | null = imageUrlField || null;
+  if (imageFile && imageFile.size > 0) {
+    imageUrl = await uploadFile(imageFile);
+  }
 
   // Replace all tags: delete existing, recreate
   await prisma.recipeTag.deleteMany({ where: { recipeId: id } });
@@ -109,6 +139,7 @@ export async function updateRecipe(id: string, formData: FormData) {
       title,
       description: description || null,
       sourceUrl: sourceUrl || null,
+      imageUrl,
       servings,
       prepTime,
       cookTime,

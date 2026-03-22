@@ -19,7 +19,7 @@ export default async function RecipesPage({
   const allRecipes = await prisma.recipe.findMany({
     where: { userId: user.id },
     include: { tags: { include: { tag: true } } },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ isFavorited: "desc" }, { createdAt: "desc" }],
   });
 
   const recipes = query

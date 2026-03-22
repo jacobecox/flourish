@@ -91,6 +91,17 @@ export default async function RecipeDetailPage({
         </div>
       </div>
 
+      {/* Hero image */}
+      {recipe.imageUrl && (
+        <div className="rounded-xl overflow-hidden mb-6 h-72">
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Meta */}
       <div className="flex flex-wrap gap-4 mb-6">
         {totalTime > 0 && (

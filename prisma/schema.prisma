@@ -37,7 +37,9 @@ model Recipe {
   servings     Int?
   prepTime     Int?                               // minutes
   cookTime     Int?                               // minutes
+  imageUrl     String?
   isPublic     Boolean   @default(false)
+  isFavorited  Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
