@@ -6,6 +6,7 @@ import {
   faJar,
   faStar,
   faArrowRight,
+  faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 import { prisma } from "@/lib/prisma";
 import type { User } from "@/lib/generated/prisma/client";
@@ -14,6 +15,7 @@ const quickActions = [
   { href: "/recipes/new", icon: faPlus, label: "New Recipe", description: "Add or import a recipe" },
   { href: "/journal/new", icon: faPlus, label: "Log a Bake", description: "Record today's bake" },
   { href: "/starter", icon: faJar, label: "Check Starter", description: "Starter readiness checklist" },
+  { href: "/chat", icon: faWandMagicSparkles, label: "Ask AI", description: "Ask your baking assistant" },
 ];
 
 function StarRating({ rating }: { rating: number | null }) {
@@ -61,26 +63,26 @@ export default async function Dashboard({ user }: { user: User }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-10">
-        <div className="bg-card border border-[var(--border)] rounded-xl p-5">
+        <Link href="/recipes" className="bg-card border border-[var(--border)] rounded-xl p-5 hover:border-primary transition-colors group">
           <div className="flex items-center gap-3 mb-1">
             <FontAwesomeIcon icon={faBookOpen} className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-muted">Recipes</span>
+            <span className="text-sm font-medium text-muted group-hover:text-foreground transition-colors">Recipes</span>
           </div>
           <p className="text-3xl font-bold text-foreground">{recipeCount}</p>
-        </div>
-        <div className="bg-card border border-[var(--border)] rounded-xl p-5">
+        </Link>
+        <Link href="/journal" className="bg-card border border-[var(--border)] rounded-xl p-5 hover:border-primary transition-colors group">
           <div className="flex items-center gap-3 mb-1">
             <img src="/flourish-logo-transparent.svg" alt="" className="w-5 h-5" />
-            <span className="text-sm font-medium text-muted">Bakes logged</span>
+            <span className="text-sm font-medium text-muted group-hover:text-foreground transition-colors">Bakes logged</span>
           </div>
           <p className="text-3xl font-bold text-foreground">{journalCount}</p>
-        </div>
+        </Link>
       </div>
 
       {/* Quick Actions */}
       <div className="mb-10">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">Quick actions</h2>
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {quickActions.map((action) => (
             <Link
               key={action.href}
@@ -99,7 +101,7 @@ export default async function Dashboard({ user }: { user: User }) {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+<div className="grid md:grid-cols-2 gap-8">
         {/* Recent Recipes */}
         <div>
           <div className="flex items-center justify-between mb-3">
