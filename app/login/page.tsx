@@ -5,9 +5,13 @@ import LoginForm from "@/components/LoginForm";
 
 export const metadata: Metadata = { title: "Sign In" };
 
-export default async function LoginPage() {
-  const user = await getCurrentUser();
-  if (user) redirect("/recipes");
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const [user, { next }] = await Promise.all([getCurrentUser(), searchParams]);
+  if (user) redirect(next?.startsWith("/") ? next : "/");
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
@@ -25,7 +29,7 @@ export default async function LoginPage() {
             Sign in to your sourdough companion
           </p>
 
-          <LoginForm />
+          <LoginForm next={next} />
         </div>
       </div>
     </div>

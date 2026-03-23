@@ -77,6 +77,57 @@ export async function createRecipe(formData: FormData) {
   redirect(`/recipes/${recipe.id}`);
 }
 
+export async function saveSharedRecipe(
+  recipeId: string
+): Promise<{ success: true; newRecipeId: string } | { success: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Not authenticated." };
+
+  const source = await prisma.recipe.findUnique({
+    where: { id: recipeId },
+    include: { tags: { include: { tag: true } } },
+  });
+
+  if (!source) return { success: false, error: "Recipe not found." };
+  if (source.userId === session.userId) return { success: false, error: "already_yours" };
+
+  const tagNames = source.tags.map((t) => t.tag.name);
+
+  const newRecipe = await prisma.recipe.create({
+    data: {
+      title: source.title,
+      description: source.description,
+      sourceUrl: source.sourceUrl,
+      imageUrl: source.imageUrl,
+      servings: source.servings,
+      prepTime: source.prepTime,
+      cookTime: source.cookTime,
+      ingredients: source.ingredients as string[],
+      instructions: source.instructions as string[],
+      userId: session.userId,
+      tags: {
+        create: await Promise.all(
+          tagNames.map(async (name) => {
+            const tag = await prisma.tag.upsert({ where: { name }, update: {}, create: { name } });
+            return { tagId: tag.id };
+          })
+        ),
+      },
+    },
+  });
+
+  await upsertEmbedding({
+    sourceType: "recipe",
+    sourceId: newRecipe.id,
+    userId: session.userId,
+    content: recipeToText(newRecipe),
+    metadata: { title: newRecipe.title },
+  }).catch(console.error);
+
+  revalidatePath("/recipes");
+  return { success: true, newRecipeId: newRecipe.id };
+}
+
 export async function toggleFavorite(id: string) {
   const session = await requireSession();
   const recipe = await prisma.recipe.findUnique({

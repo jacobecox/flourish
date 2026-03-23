@@ -250,7 +250,8 @@ export async function loginAction(
 
   const data = await res.json() as { user: FusionAuthUser };
   await upsertAndLogin(data.user);
-  redirect("/");
+  const next = (formData.get("next") as string | null)?.trim();
+  redirect(next?.startsWith("/") ? next : "/");
 }
 
 export async function registerAction(

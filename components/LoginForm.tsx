@@ -20,7 +20,7 @@ function SubmitButton() {
   );
 }
 
-export default function LoginForm() {
+export default function LoginForm({ next }: { next?: string }) {
   const [state, action] = useActionState(loginAction, null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +29,7 @@ export default function LoginForm() {
   return (
     <div className="space-y-4">
       <form action={action} className="space-y-4">
+        {next && <input type="hidden" name="next" value={next} />}
         {state?.error && (
           <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3">
             {state.error}

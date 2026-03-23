@@ -4,9 +4,10 @@ const PUBLIC_PATHS = ["/", "/login", "/register", "/forgot-password", "/reset-pa
 
 function isPublic(pathname: string): boolean {
   if (pathname === "/") return true;
-  return PUBLIC_PATHS.some(
-    (p) => p !== "/" && pathname.startsWith(p)
-  );
+  if (PUBLIC_PATHS.some((p) => p !== "/" && pathname.startsWith(p))) return true;
+  // Public recipe detail: /recipes/[id] — but not /recipes/new or /recipes/[id]/edit
+  if (/^\/recipes\/(?!new$)[^/]+$/.test(pathname)) return true;
+  return false;
 }
 
 export function middleware(request: NextRequest) {
