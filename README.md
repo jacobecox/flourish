@@ -10,7 +10,7 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, m
 - **Vector Database**: PostgreSQL + pgvector (separate DB)
 - **Auth**: FusionAuth (email/password + Google OAuth)
 - **Email**: Resend HTTP API (password reset)
-- **Storage**: Cloudflare R2 (journal photos)
+- **Storage**: Cloudflare R2 (recipe + journal photos)
 - **Embeddings**: Voyage AI `voyage-3`
 - **LLM**: Anthropic Claude Sonnet
 - **Hosting**: Control Plane
@@ -25,10 +25,13 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, m
 
 ### Recipe Manager
 - Create, edit, and delete recipes
-- Import recipes from a URL
+- Import recipes from a URL (auto-extracts title, ingredients, instructions, image, and metadata via JSON-LD)
+- Add photos manually or via URL import
 - Scale ingredients by serving count
 - Tag-based organization
 - Search and filter
+- Favorite/pin recipes to the top of the list
+- Share recipes via a public link — viewers can save a copy to their own account
 
 ### Baker's Journal
 - Log bakes with notes, rating, and bake metrics (hydration, flour type, bulk/proof time, bake temp)
@@ -55,11 +58,15 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, m
 - Quick action shortcuts
 - Recent recipes and journal entries
 
+### Account
+- Update display name
+- Change password (verifies current password before updating via FusionAuth)
+
 ### Other
 - Landing page for unauthenticated visitors
 - Dark/light theme toggle
 - Custom 404 page
-- SEO: Open Graph image, sitemap, robots.txt, structured metadata
+- SEO: Open Graph image, sitemap, robots.txt, JSON-LD structured data, dynamic OG tags on shared recipes
 - PWA support: installable on mobile (Web App Manifest, apple-touch-icon, home screen icon)
 
 ## Project Structure
@@ -67,13 +74,14 @@ A personal sourdough baking companion for tracking recipes, documenting bakes, m
 ```
 flourish/
 ├── app/
+│   ├── account/            # Account settings (display name, password)
 │   ├── api/chat/           # SSE streaming chat endpoint (RAG + Claude)
 │   ├── auth/               # OAuth callback, Google redirect, logout
 │   ├── chat/               # AI assistant page
 │   ├── forgot-password/    # Forgot password page
 │   ├── journal/            # Journal list, detail, new, edit
 │   ├── login/              # Login page
-│   ├── recipes/            # Recipe list, detail, new, edit, import
+│   ├── recipes/            # Recipe list, detail (public), new, edit, import
 │   ├── register/           # Registration page
 │   ├── reset-password/     # Reset password page
 │   ├── starter/            # Starter tracker page
