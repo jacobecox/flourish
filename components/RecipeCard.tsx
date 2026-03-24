@@ -30,7 +30,9 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-secondary to-card" />
+              <div className="w-full h-full bg-gradient-to-br from-secondary to-card flex items-center justify-center">
+                <img src="/flourish-logo-transparent.svg" alt="" className="w-16 h-16 opacity-20" />
+              </div>
             )}
           </div>
           <div className="p-4 pr-12">
