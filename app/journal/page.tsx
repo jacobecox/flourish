@@ -31,7 +31,10 @@ export default async function JournalPage({
   const [rawEntries, totalCount, recipes] = await Promise.all([
     prisma.journalEntry.findMany({
       where,
-      include: { recipe: { select: { id: true, title: true } } },
+      include: {
+        recipe: { select: { id: true, title: true } },
+        photos: { select: { url: true }, orderBy: { createdAt: "asc" }, take: 1 },
+      },
       orderBy: { date: "desc" },
       take: PAGE_SIZE + 1,
     }),
@@ -47,6 +50,7 @@ export default async function JournalPage({
   const entries = (hasMore ? rawEntries.slice(0, PAGE_SIZE) : rawEntries).map((e) => ({
     ...e,
     date: e.date.toISOString(),
+    firstPhotoUrl: e.photos[0]?.url ?? null,
   }));
   const initialCursor = entries[entries.length - 1]?.id ?? null;
   const isFiltering = query || minRating !== undefined || recipe;

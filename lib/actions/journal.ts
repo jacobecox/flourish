@@ -38,7 +38,10 @@ export async function fetchJournalEntries(
 
   const raw = await prisma.journalEntry.findMany({
     where,
-    include: { recipe: { select: { id: true, title: true } } },
+    include: {
+      recipe: { select: { id: true, title: true } },
+      photos: { select: { url: true }, orderBy: { createdAt: "asc" }, take: 1 },
+    },
     orderBy: { date: "desc" },
     take: PAGE_SIZE + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -48,6 +51,7 @@ export async function fetchJournalEntries(
   const entries = (hasMore ? raw.slice(0, PAGE_SIZE) : raw).map((e) => ({
     ...e,
     date: e.date.toISOString(),
+    firstPhotoUrl: e.photos[0]?.url ?? null,
   }));
 
   return {

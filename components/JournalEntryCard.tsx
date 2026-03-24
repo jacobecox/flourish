@@ -10,6 +10,7 @@ type JournalEntryCardProps = {
     date: Date | string;
     notes: string | null;
     rating: number | null;
+    firstPhotoUrl: string | null;
     recipe: { id: string; title: string } | null;
   };
 };
@@ -17,7 +18,19 @@ type JournalEntryCardProps = {
 export default function JournalEntryCard({ entry }: JournalEntryCardProps) {
   return (
     <Link href={`/journal/${entry.id}`} className="group block">
-      <div className="bg-card border border-[var(--border)] rounded-lg p-5 h-full hover:shadow-lg hover:border-primary transition-all">
+      <div className="bg-card border border-[var(--border)] rounded-lg overflow-hidden h-full hover:shadow-lg hover:border-primary transition-all">
+        <div className="h-44 overflow-hidden flex-shrink-0">
+          {entry.firstPhotoUrl ? (
+            <img
+              src={entry.firstPhotoUrl}
+              alt="Bake photo"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-secondary to-card" />
+          )}
+        </div>
+        <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-2">
           <p className="text-sm font-medium text-muted">{formatDate(entry.date)}</p>
           {entry.rating !== null && (
@@ -42,6 +55,7 @@ export default function JournalEntryCard({ entry }: JournalEntryCardProps) {
             {entry.recipe.title}
           </span>
         )}
+        </div>
       </div>
     </Link>
   );

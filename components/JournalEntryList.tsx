@@ -9,6 +9,7 @@ type Entry = {
   date: string;
   notes: string | null;
   rating: number | null;
+  firstPhotoUrl: string | null;
   recipeId: string | null;
   recipe: { id: string; title: string } | null;
 };

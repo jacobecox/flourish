@@ -22,16 +22,18 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
     <div className="group relative">
       <Link href={`/recipes/${recipe.id}`} className="block">
         <div className="bg-card border border-[var(--border)] rounded-lg overflow-hidden h-full hover:shadow-lg hover:border-primary transition-all">
-          {recipe.imageUrl && (
-            <div className="h-44 overflow-hidden">
+          <div className="h-44 overflow-hidden flex-shrink-0">
+            {recipe.imageUrl ? (
               <img
                 src={recipe.imageUrl}
                 alt={recipe.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-            </div>
-          )}
-          <div className={recipe.imageUrl ? "p-4 pr-12" : "p-5 pr-12"}>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-secondary to-card" />
+            )}
+          </div>
+          <div className="p-4 pr-12">
           <h3 className="font-semibold text-foreground text-lg mb-2 group-hover:text-primary transition-colors line-clamp-1">
             {recipe.title}
           </h3>
