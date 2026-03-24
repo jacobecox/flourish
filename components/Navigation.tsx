@@ -28,7 +28,7 @@ export default function Navigation({ user }: { user: NavUser | null }) {
     "exact" in item && item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
   return (
-    <nav className="bg-card border-b border-[var(--border)] shadow-sm">
+    <nav className="relative z-50 bg-card border-b border-[var(--border)] shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground hover:text-primary transition-colors">

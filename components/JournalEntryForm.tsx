@@ -156,7 +156,7 @@ export default function JournalEntryForm({
           {rating > 0 && (
             <button
               type="button"
-              onClick={() => setRating(0)}
+              onClick={() => { setRating(0); setHovered(0); }}
               className="ml-2 text-xs text-muted hover:text-foreground transition-colors self-center"
             >
               Clear

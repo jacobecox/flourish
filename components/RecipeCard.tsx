@@ -49,18 +49,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
               {recipe.cookTime ? ` · ${formatTime(recipe.cookTime)} bake` : ""}
             </p>
           )}
-          {recipe.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {recipe.tags.map(({ tag }) => (
-                <span
-                  key={tag.id}
-                  className="bg-secondary text-foreground text-xs px-2 py-0.5 rounded border border-[var(--border)] font-medium"
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
-          )}
           </div>
         </div>
       </Link>
