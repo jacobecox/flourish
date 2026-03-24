@@ -25,8 +25,29 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const recipe = await prisma.recipe.findUnique({ where: { id }, select: { title: true } });
-  return { title: recipe?.title ?? "Recipe" };
+  const recipe = await prisma.recipe.findUnique({
+    where: { id },
+    select: { title: true, description: true, imageUrl: true },
+  });
+  if (!recipe) return { title: "Recipe" };
+
+  const description = recipe.description ?? "A sourdough recipe shared on Flourish.";
+
+  return {
+    title: recipe.title,
+    description,
+    openGraph: {
+      title: recipe.title,
+      description,
+      ...(recipe.imageUrl && { images: [{ url: recipe.imageUrl }] }),
+    },
+    twitter: {
+      card: recipe.imageUrl ? "summary_large_image" : "summary",
+      title: recipe.title,
+      description,
+      ...(recipe.imageUrl && { images: [recipe.imageUrl] }),
+    },
+  };
 }
 
 export default async function RecipeDetailPage({
