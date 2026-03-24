@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Flourish — Sourdough Baking Companion";
+export const alt = "Flourish — AI-Powered Sourdough Baking Companion";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -59,12 +59,12 @@ export default function Image() {
             marginBottom: 32,
           }}
         >
-          Your sourdough baking companion
+          AI-powered sourdough baking
         </div>
 
         {/* Feature pills */}
         <div style={{ display: "flex", gap: 16 }}>
-          {["Save Recipes", "Track Bakes", "Monitor Your Starter"].map((label) => (
+          {["AI Baking Assistant", "Save Recipes", "Track Bakes"].map((label) => (
             <div
               key={label}
               style={{

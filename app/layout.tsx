@@ -5,29 +5,39 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://flourishapp.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://flourishbake.com"),
   title: {
-    default: "Flourish",
+    default: "Flourish — Sourdough Baking Companion",
     template: "%s | Flourish",
   },
   description:
-    "Your personal sourdough baking companion. Track recipes, document bakes with photos and notes, and refine your craft over time.",
-  keywords: ["sourdough", "baking", "bread", "recipes", "baking journal", "sourdough starter", "baker"],
+    "Flourish is the sourdough app built for serious bakers. Save recipes, track every bake, monitor your starter, and get personalized advice from an AI assistant that knows your exact bakes.",
+  keywords: [
+    "sourdough", "sourdough app", "sourdough recipe tracker", "baking journal",
+    "AI baking assistant", "sourdough AI", "bread baking app", "sourdough starter tracker",
+    "sourdough recipes", "artisan bread", "home baker", "bread baking", "sourdough bread",
+  ],
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "Flourish — Sourdough Baking Companion",
-    description: "Track recipes, document bakes, and refine your sourdough craft.",
+    title: "Flourish — AI-Powered Sourdough Baking Companion",
+    description: "Save recipes, track every bake, and get personalized AI advice that knows your exact bakes — no generic app can match it.",
     siteName: "Flourish",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Flourish — Sourdough Baking Companion",
-    description: "Track recipes, document bakes, and refine your sourdough craft.",
+    title: "Flourish — AI-Powered Sourdough Baking Companion",
+    description: "Save recipes, track every bake, and get personalized AI advice that knows your exact bakes.",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   appleWebApp: {
     capable: true,
