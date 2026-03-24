@@ -5,26 +5,37 @@ import { embedText, searchEmbeddings } from "@/lib/embeddings";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// In-memory rate limiter — 20 requests per user per hour
+// In-memory rate limiter — 10 requests per hour, 30 per day per user
 // Safe for single-instance deployments (maxScale: 1)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 20;
-const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const rateLimitMap = new Map<string, {
+  hourCount: number; hourResetAt: number;
+  dayCount: number; dayResetAt: number;
+}>();
+const HOURLY_LIMIT = 10;
+const DAILY_LIMIT = 30;
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function checkRateLimit(userId: string): { allowed: boolean; retryAfterSecs: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(userId);
 
-  if (!entry || now >= entry.resetAt) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return { allowed: true, retryAfterSecs: 0 };
+  const hourCount = entry && now < entry.hourResetAt ? entry.hourCount : 0;
+  const hourResetAt = entry && now < entry.hourResetAt ? entry.hourResetAt : now + HOUR_MS;
+  const dayCount = entry && now < entry.dayResetAt ? entry.dayCount : 0;
+  const dayResetAt = entry && now < entry.dayResetAt ? entry.dayResetAt : now + DAY_MS;
+
+  if (hourCount >= HOURLY_LIMIT) {
+    return { allowed: false, retryAfterSecs: Math.ceil((hourResetAt - now) / 1000) };
+  }
+  if (dayCount >= DAILY_LIMIT) {
+    return { allowed: false, retryAfterSecs: Math.ceil((dayResetAt - now) / 1000) };
   }
 
-  if (entry.count >= RATE_LIMIT) {
-    return { allowed: false, retryAfterSecs: Math.ceil((entry.resetAt - now) / 1000) };
-  }
-
-  entry.count++;
+  rateLimitMap.set(userId, {
+    hourCount: hourCount + 1, hourResetAt,
+    dayCount: dayCount + 1, dayResetAt,
+  });
   return { allowed: true, retryAfterSecs: 0 };
 }
 
@@ -119,16 +130,9 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const final = await claudeStream.finalMessage();
-        console.log(`Chat stream complete — stop_reason: ${final.stop_reason}, tokens: ${final.usage.output_tokens}`);
+        await claudeStream.finalMessage();
 
         // Send source citations — only user-owned records with internal links
-        console.log("Chat chunks:", chunks.map((c) => ({
-          sourceType: c.sourceType,
-          sourceId: c.sourceId,
-          metadata: c.metadata,
-        })));
-
         const sources = chunks
           .filter((c) => (c.sourceType === "recipe" || c.sourceType === "journal_entry") && c.sourceId)
           .map((c) => {
@@ -148,7 +152,6 @@ export async function POST(request: NextRequest) {
           // Deduplicate by href
           .filter((s, i, arr) => arr.findIndex((x) => x.href === s.href) === i);
 
-        console.log("Sources to send:", sources);
         if (sources.length > 0) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "sources", items: sources })}\n\n`));
         }

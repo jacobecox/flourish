@@ -137,7 +137,7 @@ export async function createJournalEntry(formData: FormData) {
 }
 
 export async function updateJournalEntry(id: string, formData: FormData) {
-  await requireSession();
+  const session = await requireSession();
 
   const dateRaw = formData.get("date") as string;
   const notes = formData.get("notes") as string | null;
@@ -148,7 +148,7 @@ export async function updateJournalEntry(id: string, formData: FormData) {
   const rating = ratingRaw ? parseInt(ratingRaw) : null;
 
   await prisma.journalEntry.update({
-    where: { id },
+    where: { id, userId: session.userId },
     data: {
       date,
       notes: notes || null,
@@ -191,8 +191,8 @@ export async function updateJournalEntry(id: string, formData: FormData) {
 }
 
 export async function deleteJournalEntry(id: string) {
-  await requireSession();
-  await prisma.journalEntry.delete({ where: { id } });
+  const session = await requireSession();
+  await prisma.journalEntry.delete({ where: { id, userId: session.userId } });
   deleteEmbedding("journal_entry", id).catch(console.error);
   revalidatePath("/journal");
   redirect("/journal");

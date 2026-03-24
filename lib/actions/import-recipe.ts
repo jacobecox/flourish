@@ -1,5 +1,30 @@
 "use server";
 
+function isSafeUrl(input: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(input);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+  const hostname = parsed.hostname;
+  // Block private/loopback ranges
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname === "::1" ||
+    /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hostname) ||
+    /^192\.168\.\d+\.\d+$/.test(hostname) ||
+    /^169\.254\.\d+\.\d+$/.test(hostname) // link-local / AWS metadata
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export type ImportedRecipe = {
   title: string;
   description?: string;
@@ -141,6 +166,10 @@ function findRecipeInJsonLd(data: unknown): Record<string, unknown> | null {
 }
 
 export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
+  if (!isSafeUrl(url)) {
+    return { success: false, error: "Invalid or disallowed URL." };
+  }
+
   let html: string;
 
   try {

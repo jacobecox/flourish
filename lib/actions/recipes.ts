@@ -136,22 +136,22 @@ export async function toggleFavorite(id: string) {
   });
   if (!recipe) return;
   await prisma.recipe.update({
-    where: { id },
+    where: { id, userId: session.userId },
     data: { isFavorited: !recipe.isFavorited },
   });
   revalidatePath("/recipes");
 }
 
 export async function deleteRecipe(id: string) {
-  await requireSession();
-  await prisma.recipe.delete({ where: { id } });
+  const session = await requireSession();
+  await prisma.recipe.delete({ where: { id, userId: session.userId } });
   deleteEmbedding("recipe", id).catch(console.error);
   revalidatePath("/recipes");
   redirect("/recipes");
 }
 
 export async function updateRecipe(id: string, formData: FormData) {
-  await requireSession();
+  const session = await requireSession();
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
@@ -175,6 +175,10 @@ export async function updateRecipe(id: string, formData: FormData) {
     imageUrl = await uploadFile(imageFile);
   }
 
+  // Verify ownership before mutating
+  const existing = await prisma.recipe.findUnique({ where: { id, userId: session.userId }, select: { id: true } });
+  if (!existing) return redirect("/recipes");
+
   // Replace all tags: delete existing, recreate
   await prisma.recipeTag.deleteMany({ where: { recipeId: id } });
 
@@ -185,7 +189,7 @@ export async function updateRecipe(id: string, formData: FormData) {
   );
 
   await prisma.recipe.update({
-    where: { id },
+    where: { id, userId: session.userId },
     data: {
       title,
       description: description || null,

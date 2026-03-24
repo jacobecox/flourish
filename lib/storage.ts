@@ -14,8 +14,17 @@ const s3 = new S3Client({
 
 const MAX_DIMENSION = 2048;
 const WEBP_QUALITY = 85;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"];
 
 export async function uploadFile(file: File): Promise<string> {
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("File too large. Maximum size is 10 MB.");
+  }
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    throw new Error("Invalid file type. Only images are allowed.");
+  }
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 

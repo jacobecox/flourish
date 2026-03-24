@@ -180,7 +180,7 @@ export default async function RecipeDetailPage({
             {recipe.servings} servings
           </div>
         )}
-        {recipe.sourceUrl && (
+        {recipe.sourceUrl && /^https?:\/\//i.test(recipe.sourceUrl) && (
           <a
             href={recipe.sourceUrl}
             target="_blank"
