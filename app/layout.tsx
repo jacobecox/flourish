@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: "Flourish",
   },
   icons: {
-    icon: "/favicon-64.png",
+    icon: "/icon.svg",
     apple: "/apple-touch-icon.png",
   },
 };
