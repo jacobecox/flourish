@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -84,6 +85,7 @@ export default async function RootLayout({
         <main className="min-h-screen">
           {children}
         </main>
+        <Footer />
       </body>
     </html>
   );

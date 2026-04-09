@@ -174,3 +174,7 @@ npm run ingest
 # Scrape and embed the sourdough knowledge base
 npm run scrape
 ```
+
+## License
+
+Copyright (c) 2025 Jacob Cox. All rights reserved. See [LICENSE](./LICENSE) for details.
